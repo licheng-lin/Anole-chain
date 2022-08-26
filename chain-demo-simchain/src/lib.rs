@@ -48,15 +48,15 @@ impl SimChain {
     }
 }
 
-// #[async_trait::async_trait]
-// impl LightNodeInterface for SimChain{
-//     async fn lightnode_get_parameter(&self) -> Result<Parameter>{
-//         self.get_parameter()
-//     }
-//     async fn lightnode_read_block_header(id: IdType){
-
-//     }
-// }
+#[async_trait::async_trait]
+impl LightNodeInterface for SimChain{
+    async fn lightnode_get_parameter(&self) -> Result<Parameter> {
+        self.get_parameter()
+    }
+    async fn lightnode_read_block_header(&self, id: IdType) -> Result<BlockHeader> {
+        self.read_block_header(id)
+    }
+}
 
 impl ReadInterface for SimChain {
     fn get_parameter(&self) -> Result<Parameter>{
