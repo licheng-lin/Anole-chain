@@ -1,6 +1,6 @@
 Input format
 
 ```
-block_id address [in/out, amount, timestamp]
+block_id [address] {in/out, amount, timestamp}
 ```
 
