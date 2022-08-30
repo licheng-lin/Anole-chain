@@ -17,12 +17,12 @@ pub fn build_block<'a>(
     let mut time_stamp: TsType = Default::default();
     for tx in txs{
         time_stamp = tx.value.time_stamp; // not good enough
-        chain.write_transaction(tx.clone());
+        chain.write_transaction(tx.clone())?;
     }
 
     let public_key: PkType = String::from("need to complete");
     
-    let mut block_header = BlockHeader{
+    let block_header = BlockHeader{
         block_id,
         pre_hash,
         time_stamp,
@@ -30,7 +30,7 @@ pub fn build_block<'a>(
     };
 
     // need to complete
-    let mut block_data = BlockData {
+    let block_data = BlockData {
         block_id,
     };
 

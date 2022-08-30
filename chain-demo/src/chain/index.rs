@@ -1,6 +1,5 @@
 use super::{IdType, TsType, PkType, SnType};
 use core::sync::atomic::{AtomicU64, Ordering};
-use std::os::macos::raw::stat;
 use serde::{Deserialize, Serialize};
 use crate::digest::*;
 
