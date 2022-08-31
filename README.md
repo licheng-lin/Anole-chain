@@ -18,3 +18,7 @@ pub struct RawTransaction {
 ```
 
 经讨论确定以第一种方式进行签名。
+
+- [ ] ToDoList 
+    - [ ] complete simchain-server
+
