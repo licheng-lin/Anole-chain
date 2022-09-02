@@ -1,6 +1,7 @@
 
 use anyhow::Result;
 use serde::{Serialize, Deserialize};
+// use rsa::{RsaPublicKey, RsaPrivateKey};
 
 pub mod transaction;
 pub use transaction::*;
@@ -11,12 +12,16 @@ pub use index::*;
 pub mod utils;
 pub use utils::*;
 
+pub mod build;
+pub use build::*;
 
 pub type IdType = u32;
 // Timestamp size 4 bytes
 pub type TsType = u32; 
 // public key size 4 bytes
-pub type PkType = u32;
+pub type PkType = String;
+// private key 
+// pub type SkType = RsaPrivateKey;
 // signature
 pub type SnType = String;
 //key
@@ -27,6 +32,7 @@ pub type Txtype = u32;
 #[derive(Debug, Clone, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub struct Parameter {
     pub error_bounds: u8,
+    pub learned_index: bool,
 }
 
 #[async_trait::async_trait]

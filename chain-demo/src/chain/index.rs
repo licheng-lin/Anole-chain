@@ -1,7 +1,7 @@
 use super::{IdType, TsType, PkType, SnType};
 use core::sync::atomic::{AtomicU64, Ordering};
 use serde::{Deserialize, Serialize};
-use crate::digest::Digest;
+use crate::digest::*;
 
 // static INDEX_ID_CNT: AtomicU64 = AtomicU64::new(0);
 
@@ -27,5 +27,16 @@ impl BlockHeader {
     pub fn sign_transaction(&self) -> SnType {
         // self.public_key, for test purpose
         String::from("need to complete")
+    }
+}
+
+impl Digestible for BlockHeader {
+    fn to_digest(&self) -> Digest{
+        let mut state = blake2().to_state();
+        state.update(&self.block_id.to_le_bytes());
+        state.update(&self.pre_hash.0);
+        state.update(&self.time_stamp.to_le_bytes());
+        state.update(&self.public_key.as_bytes());
+        Digest::from(state.finalize())
     }
 }
