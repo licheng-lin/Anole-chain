@@ -21,4 +21,5 @@ pub struct RawTransaction {
 
 - [ ] ToDoList 
     - [ ] complete simchain-server
+    - [ ] format schnorr
 
