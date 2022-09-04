@@ -111,7 +111,7 @@ impl WriteInterface for SimChain {
     fn write_transaction(&mut self, tx: Transaction) -> Result<()>{
         let bytes = bincode::serialize(&tx)?;
         self.tx_db
-            .put(tx.block_id.to_le_bytes(), bytes)?;
+            .put(tx.id.to_le_bytes(), bytes)?;
         Ok(())
     }
 }
