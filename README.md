@@ -23,4 +23,5 @@ pub struct RawTransaction {
     - [X] complete simchain-server
     - [X] format schnorr
     - [ ] complete signature use schnorr
+    - [ ] 
 

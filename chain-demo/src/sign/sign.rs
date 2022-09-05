@@ -17,6 +17,7 @@ use core::fmt::{Debug};
 use curve25519_dalek::constants;
 use curve25519_dalek::ristretto::{CompressedRistretto,RistrettoPoint};
 use curve25519_dalek::scalar::Scalar;
+use serde::{Serialize, Deserialize};
 
 use super::*;
 use crate::context::{SigningTranscript,SigningContext};
@@ -32,7 +33,7 @@ pub const SIGNATURE_LENGTH: usize = 64;
 /// These cannot be converted to any Ed25519 signature because they hash
 /// curve points in the Ristretto encoding.
 #[allow(non_snake_case)]
-#[derive(Clone, Copy, Eq, PartialEq)]
+#[derive(Clone, Copy, Eq, PartialEq, Serialize, Deserialize)]
 pub struct Signature {
     /// `R` is a `RistrettoPoint`, formed by using an hash function with
     /// 512-bits output to produce the digest of:

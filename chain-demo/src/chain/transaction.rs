@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 
 static TX_ID_CNT: AtomicU64 = AtomicU64::new(0);
 
-#[derive(Debug, Default, Clone, Eq, PartialEq)]
+#[derive(Debug, Default, Clone, Eq, PartialEq, Serialize, Deserialize)]
 pub struct TransactionValue {
     pub trans_in: bool,
     pub trans_value: Txtype,
@@ -38,7 +38,7 @@ impl RawTransaction{
     }
 }
 
-#[derive(Debug, Clone, Eq, PartialEq)]
+#[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
 pub struct Transaction {
     pub id: IdType,
     pub block_id: IdType,

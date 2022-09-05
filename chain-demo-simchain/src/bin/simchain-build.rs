@@ -6,6 +6,7 @@ use structopt::StructOpt;
 use std::path::{Path, PathBuf};
 use chain_demo::*;
 use chain_demo_simchain::SimChain;
+use rand_core::OsRng;
 
 #[derive(StructOpt, Debug)]
 #[structopt(name="simchain-build")]
@@ -37,10 +38,11 @@ fn build_chian(data_path: &Path, out_db_path: &Path, param: &Parameter) -> Resul
     let mut chain = SimChain::create(out_db_path, param.clone())?;
     chain.set_parameter(param.clone())?;
 
+    let key_pair: Keypair = Keypair::generate_with(OsRng);
     let mut pre_hash = Digest::default();
     for (id,tx) in raw_txs.iter(){
         info!("build block {}", id);
-        let block_header = build_block(*id, pre_hash, tx.iter(), &mut chain)?;
+        let block_header = build_block(*id, pre_hash, tx.iter(), &key_pair, &mut chain)?;
         pre_hash = block_header.to_digest();
     }
     Ok(())

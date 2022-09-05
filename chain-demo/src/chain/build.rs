@@ -8,7 +8,7 @@ pub fn build_block<'a>(
     block_id: IdType,
     pre_hash: Digest,
     raw_txs: impl Iterator<Item = &'a RawTransaction>,
-    key_pair: Keypair,
+    key_pair: & Keypair,
     chain: &mut (impl ReadInterface + WriteInterface),
 ) -> Result<BlockHeader> {
     info!("Build block {}", block_id);

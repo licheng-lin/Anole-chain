@@ -35,6 +35,7 @@ package = "curve25519-dalek-ng"
 # git = "https://github.com/dalek-cryptography/curve25519-dalek"
 version = "4.1.1"
 default-features = false
+features = ["serde"]
 
 # [dependencies.ed25519-dalek]
 # version = "1.0.0"
