@@ -21,7 +21,7 @@ pub fn build_block<'a>(
         chain.write_transaction(tx.clone())?;
     }
 
-    let public_key: PkType = key_pair.public;
+    let public_key: PkType = key_pair.public.into_compressed();
     
     let block_header = BlockHeader{
         block_id,

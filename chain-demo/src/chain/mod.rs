@@ -1,5 +1,6 @@
 
 use anyhow::Result;
+use curve25519_dalek::ristretto::CompressedRistretto;
 use serde::{Serialize, Deserialize};
 use super::*;
 
@@ -19,7 +20,7 @@ pub type IdType = u32;
 // Timestamp size 4 bytes
 pub type TsType = u32; 
 // public key size 4 bytes
-pub type PkType = PublicKey;
+pub type PkType = CompressedRistretto;
 // private key 
 // pub type SkType = RsaPrivateKey;
 // signature
