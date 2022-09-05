@@ -19,6 +19,7 @@ use curve25519_dalek::constants;
 use curve25519_dalek::ristretto::{CompressedRistretto,RistrettoPoint};
 use curve25519_dalek::scalar::Scalar;
 
+use serde::{Serialize, Deserialize};
 use subtle::{Choice,ConstantTimeEq};
 use zeroize::Zeroize;
 
@@ -576,7 +577,7 @@ serde_boilerplate!(SecretKey);
 /// At present, we decompress `PublicKey`s into this representation
 /// during deserialization, which improves error handling, but costs
 /// a compression during signing and verification.
-#[derive(Copy, Clone, Default, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Copy, Clone, Default, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 pub struct PublicKey(pub (crate) RistrettoBoth);
 
 impl Debug for PublicKey {

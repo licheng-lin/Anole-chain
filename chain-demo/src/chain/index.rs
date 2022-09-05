@@ -22,13 +22,6 @@ pub struct BlockHeader {
     pub public_key: PkType,
 }
 
-impl BlockHeader {
-    // signature process
-    pub fn sign_transaction(&self) -> SnType {
-        // self.public_key, for test purpose
-        String::from("need to complete")
-    }
-}
 
 impl Digestible for BlockHeader {
     fn to_digest(&self) -> Digest{
@@ -36,7 +29,7 @@ impl Digestible for BlockHeader {
         state.update(&self.block_id.to_le_bytes());
         state.update(&self.pre_hash.0);
         state.update(&self.time_stamp.to_le_bytes());
-        state.update(&self.public_key.as_bytes());
+        state.update(&self.public_key.to_bytes());
         Digest::from(state.finalize())
     }
 }

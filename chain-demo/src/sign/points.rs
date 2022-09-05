@@ -21,6 +21,7 @@
 use core::fmt::{Debug};
 
 use curve25519_dalek::ristretto::{CompressedRistretto,RistrettoPoint};
+use serde::{Serialize, Deserialize};
 use subtle::{ConstantTimeEq,Choice};
 // use curve25519_dalek::scalar::Scalar;
 
@@ -35,7 +36,7 @@ pub const RISTRETTO_POINT_LENGTH: usize = 32;
 /// as well as the corresponding `CompressedRistretto`.  It provides
 /// a convenient middle ground for protocols that both hash compressed
 /// points to derive scalars for use with uncompressed points.
-#[derive(Copy, Clone, Default, Eq)]  // PartialEq optimized below
+#[derive(Copy, Clone, Default, Eq, Serialize, Deserialize)]  // PartialEq optimized below
 pub struct RistrettoBoth {
     compressed: CompressedRistretto,
     point: RistrettoPoint,

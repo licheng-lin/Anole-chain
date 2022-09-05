@@ -1,7 +1,7 @@
 
 use anyhow::Result;
 use serde::{Serialize, Deserialize};
-// use rsa::{RsaPublicKey, RsaPrivateKey};
+use super::*;
 
 pub mod transaction;
 pub use transaction::*;
@@ -19,11 +19,11 @@ pub type IdType = u32;
 // Timestamp size 4 bytes
 pub type TsType = u32; 
 // public key size 4 bytes
-pub type PkType = String;
+pub type PkType = PublicKey;
 // private key 
 // pub type SkType = RsaPrivateKey;
 // signature
-pub type SnType = String;
+pub type SnType = Signature;
 //key
 pub type KeyType = String;
 //transaction value
