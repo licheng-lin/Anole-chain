@@ -53,6 +53,11 @@ async fn web_get_param() -> actix_web::Result<impl Responder> {
     Ok(HttpResponse::Ok().json(data))
 }
 
+async fn web_query(query_param: web::Json<QueryParam>) -> actix_web::Result<impl Responder>{
+    
+    
+    Ok(HttpResponse::Ok())
+}
 
 
 #[derive(StructOpt, Debug)]
