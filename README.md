@@ -22,6 +22,6 @@ pub struct RawTransaction {
 - [ ] ToDoList 
     - [X] complete simchain-server
     - [X] format schnorr
-    - [ ] complete signature use schnorr
-    - [ ] 
+    - [X] complete signature use schnorr
+    - [ ] query verify
 
