@@ -98,6 +98,12 @@ impl RistrettoBoth {
         })
     }
 
+    pub fn recover(compressed: CompressedRistretto) -> RistrettoBoth {
+        RistrettoBoth {
+            point: compressed.decompress().unwrap(),
+            compressed,
+        }
+    }
     /// Compress into the `RistrettoBoth` format that also retains the
     /// uncompressed form.
     pub fn from_point(point: RistrettoPoint) -> RistrettoBoth {
