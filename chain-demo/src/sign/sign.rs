@@ -442,7 +442,7 @@ pub fn sign_aggregate(signatures: &[Signature])->AggregateSignature
     let bs: Scalar = signatures.iter().map(|sig| sig.s).sum();
     let r:Vec<CompressedRistretto>=signatures.iter().map(|sig| sig.R).collect();
     let rsum =signatures.iter().map(|sig| sig.R.decompress().unwrap()).sum::<RistrettoPoint>().compress();
-    AggregateSignature(bs,r,rsum)
+    AggregateSignature::create(bs, r, rsum)
 }
 
 #[cfg(test)]

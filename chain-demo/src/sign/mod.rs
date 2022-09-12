@@ -37,4 +37,17 @@ pub mod sign;
 pub use sign::*;
 
 #[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
-pub struct AggregateSignature(Scalar, Vec<CompressedRistretto>, CompressedRistretto);
+pub struct AggregateSignature{
+    pub bs: Scalar,
+    pub r: Vec<CompressedRistretto>,
+    pub rsum: CompressedRistretto,
+}
+
+impl AggregateSignature {
+    pub fn create(bs: Scalar,
+        r: Vec<CompressedRistretto>,
+        rsum: CompressedRistretto,)
+        -> Self{
+            Self { bs, r, rsum }
+        }
+}
