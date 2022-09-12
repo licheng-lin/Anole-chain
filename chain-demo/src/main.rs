@@ -61,8 +61,9 @@ fn main(){
 
     //聚合签名，全节点调用sign_aggregate将多个签名合并为{s,r,rsum}形式 客户端使用得到的{s,r,rsum}及区块头中的公钥调用verify_aggregate进行验证
     let transcripts = messages.iter().map(|m| ctx.bytes(m));
-    let (bs,r,Rsum)=sign_aggregate(&signatures[..]);
-    if keypair.public.verify_aggregate(transcripts, bs, &r[..],Rsum).is_ok(){
+    let aggre_sign=sign_aggregate(&signatures[..]);
+    println!("aggregate_sign: {:?}",aggre_sign);
+    if keypair.public.verify_aggregate(transcripts,aggre_sign.bs, &aggre_sign.r[..], aggre_sign.rsum).is_ok(){
         println!("aggregate_varify passed!");
     }
 
