@@ -1,15 +1,18 @@
 use super::{IdType, TsType, PkType, SnType};
 use core::sync::atomic::{AtomicU64, Ordering};
+use std::collections::HashMap;
 use serde::{Deserialize, Serialize};
-use crate::digest::*;
+use crate::{digest::*, Transaction, KeyType, AggregateSignature};
 
 // static INDEX_ID_CNT: AtomicU64 = AtomicU64::new(0);
 
 #[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
 pub struct BlockData {
     pub block_id: IdType,
-    // pub data: ,
-    // pub signature: SnType,
+    pub tx_ids: Vec<IdType>,
+    //HashMap is extremly quick at point query
+    pub intra_index: HashMap<KeyType, IdType>,
+    pub aggre_signs: HashMap<KeyType, AggregateSignature>,
 }
 
 //block_id == block_height, data_root = data.hash()

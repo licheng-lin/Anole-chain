@@ -8,6 +8,8 @@ fn rand_hack() -> impl RngCore+CryptoRng {
 
 #[macro_use]
 pub mod serdey;
+use curve25519_dalek::{scalar::Scalar, ristretto::CompressedRistretto};
+use serde::{Serialize, Deserialize};
 pub use serdey::*;
 
 pub mod scalars;
@@ -34,10 +36,18 @@ pub use boscoster::*;
 pub mod sign;
 pub use sign::*;
 
+#[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
+pub struct AggregateSignature{
+    pub bs: Scalar,
+    pub r: Vec<CompressedRistretto>,
+    pub rsum: CompressedRistretto,
+}
 
-// pub use errors::{SignatureError,SignatureResult};
-// pub use context::{signing_context}; // SigningContext,SigningTranscript
-// pub use sign::{Signature,SIGNATURE_LENGTH,sign_aggregate};
-// pub use keys::*;
-// pub use batch::{verify_batch,verify_batch_rng,verify_batch_deterministic,PreparedBatch,verify_batch_direct,verify_batch_bos};
-// pub use sign::{PublicKey,Keypair,Signature, signing_context,verify_batch_bos,sign_aggregate,verify_batch};
+impl AggregateSignature {
+    pub fn create(bs: Scalar,
+        r: Vec<CompressedRistretto>,
+        rsum: CompressedRistretto,)
+        -> Self{
+            Self { bs, r, rsum }
+        }
+}

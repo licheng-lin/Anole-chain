@@ -42,7 +42,9 @@ fn build_chian(data_path: &Path, out_db_path: &Path, param: &Parameter) -> Resul
     let mut pre_hash = Digest::default();
     for (id,tx) in raw_txs.iter(){
         info!("build block {}", id);
-        let block_header = build_block(*id, pre_hash, tx.iter(), &key_pair, &mut chain)?;
+        let mut sorted_txs = tx.clone();
+        sorted_txs.sort_by_key(|tx| tx.key.clone());
+        let block_header = build_block(*id, pre_hash, sorted_txs.iter(), &key_pair, &mut chain)?;
         pre_hash = block_header.to_digest();
     }
     Ok(())

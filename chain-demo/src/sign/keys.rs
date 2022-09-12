@@ -627,7 +627,9 @@ impl PublicKey {
     pub fn from_compressed(compressed: CompressedRistretto) -> SignatureResult<PublicKey> {
         Ok(PublicKey(RistrettoBoth::from_compressed(compressed) ?))
     }
-
+    pub fn recover(compressed: CompressedRistretto)-> PublicKey {
+        PublicKey(RistrettoBoth::recover(compressed))
+    }
     /// Compress into the `PublicKey` format that also retains the
     /// uncompressed form.
     pub fn from_point(point: RistrettoPoint) -> PublicKey {
