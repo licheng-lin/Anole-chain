@@ -16,27 +16,32 @@ struct Opts {
     input_data_path: PathBuf,
 
     //output db_path
-    #[structopt(long, short= "-db")]
+    #[structopt(short="db", long)]
     db_path: PathBuf,
 
 
-    //use learned index
+    //use inter-index default == false
     #[structopt(long)]
-    learned_index: bool,
+    inter_index: bool,
+
+    //use intra-index
+    #[structopt(long)]
+    intra_index: bool,
 
     //error_bounds
     #[structopt(long, default_value = "5")]
     error_bounds: u8,
 }
 
-fn build_chian(data_path: &Path, out_db_path: &Path, param: &Parameter) -> Result<()> {
+fn build_chian(data_path: &Path, out_db_path: &Path, param: &mut Parameter) -> Result<()> {
     info!("build chain using data from {:?}", data_path);
     info!("output db path: {:?}",out_db_path);
     info!("param: {:?}",param);
 
     let raw_txs = load_raw_tx_from_file(data_path)?;
     let mut chain = SimChain::create(out_db_path, param.clone())?;
-    chain.set_parameter(param.clone())?;
+    
+    let mut block_count:u32 = 0;
 
     let key_pair: Keypair = Keypair::generate_with(OsRng);
     let mut pre_hash = Digest::default();
@@ -46,7 +51,10 @@ fn build_chian(data_path: &Path, out_db_path: &Path, param: &Parameter) -> Resul
         sorted_txs.sort_by_key(|tx| tx.key.clone());
         let block_header = build_block(*id, pre_hash, sorted_txs.iter(), &key_pair, &mut chain)?;
         pre_hash = block_header.to_digest();
+        block_count += 1;
     }
+    param.block_count = block_count;
+    chain.set_parameter(param.clone())?;
     Ok(())
 }
 
@@ -56,12 +64,14 @@ fn main() -> Result<()> {
     env_logger::init_from_env(env_logger::Env::default().filter_or("RUST_LOG", "info"));
 
     let opts = Opts::from_args();
-    let param = Parameter {
+    let mut param = Parameter {
         error_bounds: opts.error_bounds,
-        learned_index: opts.learned_index,
+        inter_index: opts.inter_index,
+        intra_index: opts.intra_index,
+        block_count: 0,
     };
 
-    build_chian(&opts.input_data_path, &opts.db_path, &param)?;
+    build_chian(&opts.input_data_path, &opts.db_path, &mut param)?;
 
     Ok(())
 }

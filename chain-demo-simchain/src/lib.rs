@@ -31,7 +31,7 @@ impl SimChain {
             block_header_db: DB::open(&opts, path.join("blk_header.db"))?,
             block_data_db: DB::open(&opts, path.join("blk_data.db"))?,
             tx_db: DB::open(&opts, path.join("tx.db"))?,
-
+            
         })
     }
 

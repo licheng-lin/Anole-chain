@@ -36,7 +36,9 @@ pub type Txtype = u32;
 #[derive(Debug, Clone, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub struct Parameter {
     pub error_bounds: u8,
-    pub learned_index: bool,
+    pub inter_index: bool,
+    pub intra_index: bool,
+    pub block_count: u32,
 }
 
 #[async_trait::async_trait]

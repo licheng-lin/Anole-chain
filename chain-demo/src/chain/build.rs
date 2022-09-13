@@ -1,4 +1,4 @@
-use std::collections::{HashMap, BTreeMap};
+use std::collections::{HashMap};
 
 use log::info;
 
@@ -25,7 +25,7 @@ pub fn build_block<'a>(
 ) -> Result<BlockHeader> {
     info!("Build block {}", block_id);
     
-    let param = chain.get_parameter()?;
+    // let param = chain.get_parameter()?;
     let txs: Vec<Transaction> = raw_txs.map(|rtx: &RawTransaction| Transaction::create_with_sk(rtx, &key_pair)).collect();
     let mut time_stamp: TsType = Default::default();
     let mut tx_ids: Vec<IdType> = Vec::new();

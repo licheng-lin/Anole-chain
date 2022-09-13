@@ -54,9 +54,11 @@ async fn web_get_param() -> actix_web::Result<impl Responder> {
 }
 
 async fn web_query(query_param: web::Json<QueryParam>) -> actix_web::Result<impl Responder>{
-    
-    
-    Ok(HttpResponse::Ok())
+    info!("into web_query");
+    let result = historical_query(&query_param, get_chain()).map_err(handle_err)?;
+    info!("{:?}",result);
+    println!("{:?}",result);
+    Ok(HttpResponse::Ok().json(result))
 }
 
 
@@ -92,6 +94,7 @@ async fn main() -> actix_web::Result<()> {
             .route("/get/blk_header/{id}", web::get().to(web_get_blk_header))
             .route("/get/blk_data/{id}", web::get().to(web_get_blk_data))
             .route("/get/tx/{id}", web::get().to(web_get_transaction))
+            .route("/query", web::post().to(web_query))
     })
     .bind(opts.binding)?
     .run()

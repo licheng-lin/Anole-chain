@@ -36,7 +36,7 @@ pub use boscoster::*;
 pub mod sign;
 pub use sign::*;
 
-#[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize, Hash)]
 pub struct AggregateSignature{
     pub bs: Scalar,
     pub r: Vec<CompressedRistretto>,
