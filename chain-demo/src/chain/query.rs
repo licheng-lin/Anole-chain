@@ -24,9 +24,18 @@ pub struct OverallResult{
 }
 
 #[derive(Debug, Default, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct ResultTxs(pub HashMap<AggregateSignature, Vec<Transaction>>);
+pub struct ResultTxs(pub HashMap<IdType, Vec<Transaction>>);
+
+#[derive(Debug, Default, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct ResultSigs(pub HashMap<IdType, Option<Signature>>);
 
 impl ResultTxs{
+    pub fn new() -> Self{
+        Self(HashMap::new())
+    }
+}
+
+impl ResultSigs{
     pub fn new() -> Self{
         Self(HashMap::new())
     }
@@ -43,6 +52,7 @@ pub fn historical_query(q_param: &QueryParam, chain: &impl ReadInterface)
     let cpu_timer = howlong::ProcessCPUTimer::new();
     let timer = howlong::HighResolutionTimer::new();
     let mut res_txs = ResultTxs::new();
+    let mut res_sigs = ResultSigs::new();
 
     let mut result = OverallResult {
         res_txs: res_txs.clone(),
@@ -65,26 +75,63 @@ pub fn historical_query(q_param: &QueryParam, chain: &impl ReadInterface)
     for blk_data in block_data {
         if blk_data.aggre_signs.contains_key(&key) {
             let aggre_sign = blk_data.aggre_signs.get(&key).unwrap().clone();
+            res_sigs.0.entry(blk_data.block_id.clone())
+            .or_insert(Some(aggre_sign));
             //use intra-index or not
             if param.intra_index {
                 let mut tx_id = blk_data.intra_index.get(&key).unwrap().clone();
                 // In one block, the id of each tx is consecutive
                 while chain.read_transaction(tx_id.clone())?.key.eq(&key) {
-                    res_txs.0.entry(aggre_sign.clone())
+                    res_txs.0.entry(blk_data.block_id.clone())
                     .or_insert_with(Vec::new)
                     .push(chain.read_transaction(tx_id)?.clone());
                     tx_id += 1;
-                } 
+                }
             } else {
                 // traverse without index
                 for id in blk_data.tx_ids {
                     if chain.read_transaction(id)?.key.eq(&key) {
-                        res_txs.0.entry(aggre_sign.clone())
+                        res_txs.0.entry(blk_data.block_id.clone())
                         .or_insert_with(Vec::new)
                         .push(chain.read_transaction(id)?.clone());
                     }
                 }
             }
+        } else {
+            // intra_index is ordered & consider boundray condition
+            res_sigs.0.entry(blk_data.block_id.clone())
+            .or_insert(None);
+            let mut tx_id: IdType = blk_data.tx_ids[0];
+            let min_id: IdType = blk_data.tx_ids[0];
+            let max_id: IdType = blk_data.tx_ids.len() as IdType + min_id;
+            // let keys = blk_data.intra_index.keys().;
+            if param.intra_index {
+                for (iter_key, id) in blk_data.intra_index.iter() {
+                    if iter_key.gt(&key) {
+                        tx_id = id.to_owned();
+                        break;
+                    }
+                }
+            } else {
+                // traverse without index
+                for id in blk_data.tx_ids.clone() {
+                    if chain.read_transaction(id)?.key.gt(&key) {
+                        tx_id = id.to_owned();
+                        break;
+                    }
+                }
+            }
+            if tx_id >
+
+            // find exact id and add to list
+            let mut id = tx_id.to_owned() - 1;
+            let mut txs: Vec<Transaction> = Vec::new();
+            txs.push(chain.read_transaction(id)?.clone());
+            id += 1;
+            txs.push(chain.read_transaction(id)?.clone());
+            res_txs.0.entry(blk_data.block_id.clone())
+            .or_insert_with(Vec::new)
+            .append(&mut txs);
         }
     }
 

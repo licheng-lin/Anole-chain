@@ -28,7 +28,7 @@ fn main(){
         b"And I'm not here to fill 'er up. Nope, we came to riot, here to incite, we don't want any of your stuff.", ];
     let mut signatures: Vec<Signature> = Vec::new();
     // let mut keypairs: Vec<Keypair> = Vec::new();
-
+    
     //compressed_ristretto为存放在区块头的公钥部分
     let mut compressed_ristretto: Vec<CompressedRistretto> = Vec::new();
     //单个数据签名和验证也可仿照keypair.sign与keypair.public.verify

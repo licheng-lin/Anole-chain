@@ -1,6 +1,7 @@
-use std::collections::{HashMap};
+use std::collections::{HashMap, BTreeMap, hash_map::RandomState};
 
 use log::info;
+use rsa::pkcs8::der::Encodable;
 
 use crate::Digest;
 use super::*;
@@ -31,35 +32,41 @@ pub fn build_block<'a>(
     let mut tx_ids: Vec<IdType> = Vec::new();
     time_stamp = txs[0].value.time_stamp;
     // intra-index & aggre_sign
-    let mut intra_index: HashMap<KeyType, IdType>= HashMap::new();
-    let mut aggre_signs: HashMap<KeyType, AggregateSignature> = HashMap::new(); 
-    let mut signature: Vec<Signature> = Vec::new();
+    let mut intra_b_index: BTreeMap<KeyType, IdType>= BTreeMap::new();
+    let intra_index: HashMap<KeyType, IdType>;
+    let mut aggre_signs: HashMap<KeyType, Signature> = HashMap::new(); 
+    let mut aggre_string_txs: String = String::from("");
     let mut pre_key = txs[0].key.clone();
-    let mut aggre_sign: AggregateSignature;
+    let mut aggre_sign: Signature;
+    let ctx = signing_context(b"");
 
     for tx in txs{
         chain.write_transaction(tx.clone())?;
 
         if tx.key.eq(&pre_key) {
-            signature.push(tx.signature);
+            aggre_string_txs += &serde_json::to_string(&tx).unwrap();
         } else {
-            aggre_sign = sign_aggregate(&signature[..]);
+            aggre_sign = key_pair.sign(ctx.bytes(aggre_string_txs.as_bytes()));
             aggre_signs.entry(pre_key).or_insert(aggre_sign);
 
-            signature.clear();
-            signature.push(tx.signature);
+            aggre_string_txs.clear();
+            aggre_string_txs += &serde_json::to_string(&tx).unwrap();
             pre_key = tx.key.clone();
         }
         
         tx_ids.push(tx.id);
-        intra_index.entry(tx.key).or_insert(tx.id.clone());
+        intra_b_index.entry(tx.key).or_insert(tx.id.clone());
         
     }
-    aggre_sign = sign_aggregate(&signature[..]);
+    aggre_sign = key_pair.sign(ctx.bytes(aggre_string_txs.as_bytes()));
     aggre_signs.entry(pre_key).or_insert(aggre_sign);
-    signature.clear();
+    aggre_string_txs.clear();
 
     let public_key: PkType = key_pair.public.into_compressed();
+    // convert BTreeMap to HashMap
+    let keys = intra_b_index.keys();
+    let values = intra_b_index.values();
+    intra_index= keys.into_iter().map(|x| x.to_owned()).zip(values.into_iter().map(|y| y.to_owned())).collect::<HashMap<_,_>>();
     
     let block_header = BlockHeader{
         block_id,
