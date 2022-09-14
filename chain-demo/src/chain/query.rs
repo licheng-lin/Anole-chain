@@ -104,7 +104,7 @@ fn query_chain_no_inter_index(
     chain: &impl ReadInterface,
 ) -> Result<()>{
     let mut block_index = chain.get_parameter()?.block_count.clone();
-    while block_index >= 0 as u32 {
+    while block_index > 0 as u32 {
         let block_header = chain.read_block_header(block_index)?;
         let block_data = chain.read_block_data(block_index)?;
         if block_header.time_stamp >= q_param.value.unwrap()[0].unwrap()

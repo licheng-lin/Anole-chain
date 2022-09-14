@@ -55,9 +55,8 @@ async fn web_get_param() -> actix_web::Result<impl Responder> {
 
 async fn web_query(query_param: web::Json<QueryParam>) -> actix_web::Result<impl Responder>{
     info!("into web_query");
-    let result = historical_query(&query_param, get_chain()).map_err(handle_err)?;
-    info!("{:?}",result);
-    println!("{:?}",result);
+    let mut result = historical_query(&query_param, get_chain()).map_err(handle_err)?;
+    info!("{:#?}",result);
     Ok(HttpResponse::Ok().json(result))
 }
 
