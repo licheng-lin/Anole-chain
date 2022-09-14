@@ -74,7 +74,7 @@ pub fn historical_query(q_param: &QueryParam, chain: &impl ReadInterface)
                     .or_insert_with(Vec::new)
                     .push(chain.read_transaction(tx_id)?.clone());
                     tx_id += 1;
-                }
+                } 
             } else {
                 // traverse without index
                 for id in blk_data.tx_ids {
