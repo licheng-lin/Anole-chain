@@ -31,10 +31,14 @@ fn main(){
 
     //compressed_ristretto为存放在区块头的公钥部分
     let mut compressed_ristretto: Vec<CompressedRistretto> = Vec::new();
+    //单个数据签名和验证也可仿照keypair.sign与keypair.public.verify
     for i in 0..messages.len() {
        let keypair1 = keypair.clone();
        let compressed_ristretto1=keypair1.public.as_compressed();
        let signature = keypair1.sign(ctx.bytes(messages[i]));
+       if keypair.public.verify(ctx.bytes(messages[i]), &signature).is_ok(){
+        println!("verify passed!");
+       }
         signatures.push(signature);
         // keypairs.push(keypair1);
         compressed_ristretto.push(*compressed_ristretto1);
