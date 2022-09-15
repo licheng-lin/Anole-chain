@@ -13,6 +13,8 @@ pub struct QueryParam{
 
 }
 
+/// res_txs for block query transactions, and boundary check.
+/// res_sigs for aggregate_sinatures of each block
 #[derive(Debug, Default, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct OverallResult{
     #[serde(rename = "result")]
@@ -125,7 +127,9 @@ pub fn historical_query(q_param: &QueryParam, chain: &impl ReadInterface)
                     }
                 }
             }
-            for ids in (tx_id - 1) .. tx_id {
+            info!("min: {}, max: {}, ids: {}", min_id, max_id, tx_id);
+            for ids in vec![tx_id - 1,tx_id].iter().map(|x| x.to_owned()) {
+                info!("id:{}",ids);
                 if ids >= min_id 
                 && ids <= max_id {
                     txs.push(chain.read_transaction(ids)?.clone())

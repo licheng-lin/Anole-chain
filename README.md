@@ -2,8 +2,9 @@
     - [X] complete simchain-server
     - [X] format schnorr
     - [x] complete signature use schnorr
-    - [ ] query bug
+    - [x] query bug
     - [ ] query verify
+    - [ ] inter-index
 
 
 Input format
