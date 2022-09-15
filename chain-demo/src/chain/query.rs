@@ -17,6 +17,7 @@ pub struct QueryParam{
 pub struct OverallResult{
     #[serde(rename = "result")]
     pub res_txs: ResultTxs,
+    pub res_sigs: ResultSigs,
     pub query_param: QueryParam,
     pub query_time_ms: u64,
     pub use_inter_index: bool,
@@ -56,6 +57,7 @@ pub fn historical_query(q_param: &QueryParam, chain: &impl ReadInterface)
 
     let mut result = OverallResult {
         res_txs: res_txs.clone(),
+        res_sigs: res_sigs.clone(),
         query_param: q_param.clone(),
         query_time_ms: 0,
         use_inter_index: param.inter_index,
@@ -101,9 +103,11 @@ pub fn historical_query(q_param: &QueryParam, chain: &impl ReadInterface)
             // intra_index is ordered & consider boundray condition
             res_sigs.0.entry(blk_data.block_id.clone())
             .or_insert(None);
-            let mut tx_id: IdType = blk_data.tx_ids[0];
+
+            let mut txs: Vec<Transaction> = Vec::new();
             let min_id: IdType = blk_data.tx_ids[0];
-            let max_id: IdType = blk_data.tx_ids.len() as IdType + min_id;
+            let max_id: IdType = blk_data.tx_ids.len() as IdType + min_id - 1;
+            let mut tx_id: IdType = max_id.clone() + 1;
             // let keys = blk_data.intra_index.keys().;
             if param.intra_index {
                 for (iter_key, id) in blk_data.intra_index.iter() {
@@ -121,14 +125,13 @@ pub fn historical_query(q_param: &QueryParam, chain: &impl ReadInterface)
                     }
                 }
             }
-            if tx_id >
+            for ids in (tx_id - 1) .. tx_id {
+                if ids >= min_id 
+                && ids <= max_id {
+                    txs.push(chain.read_transaction(ids)?.clone())
+                }
+            }
 
-            // find exact id and add to list
-            let mut id = tx_id.to_owned() - 1;
-            let mut txs: Vec<Transaction> = Vec::new();
-            txs.push(chain.read_transaction(id)?.clone());
-            id += 1;
-            txs.push(chain.read_transaction(id)?.clone());
             res_txs.0.entry(blk_data.block_id.clone())
             .or_insert_with(Vec::new)
             .append(&mut txs);
@@ -136,6 +139,7 @@ pub fn historical_query(q_param: &QueryParam, chain: &impl ReadInterface)
     }
 
     result.res_txs = res_txs.clone();
+    result.res_sigs = res_sigs.clone();
     result.query_time_ms = timer.elapsed().as_millis() as u64;
     info!("used time: {:?}", cpu_timer.elapsed());
     Ok(result)
