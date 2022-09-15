@@ -4,6 +4,8 @@ extern crate log;
 use actix_cors::Cors;
 use actix_web::{web, App, HttpResponse, HttpServer, Responder};
 use chain_demo_simchain::SimChain;
+use futures::StreamExt;
+use serde::Serialize;
 use std::fmt;
 use std::path::PathBuf;
 use structopt::StructOpt;
@@ -58,6 +60,25 @@ async fn web_query(query_param: web::Json<QueryParam>) -> actix_web::Result<impl
     let result = historical_query(&query_param, get_chain()).map_err(handle_err)?;
     info!("{:#?}",result);
     Ok(HttpResponse::Ok().json(result))
+}
+
+#[derive(Serialize)]
+pub struct VerifyResponse {
+    pass: bool,
+    fail_detail: VerifyResult,
+    verify_time_in_ms: u64,
+}
+
+async fn web_verify(mut body: web::Payload) -> actix_web::Result<impl Responder>{
+    // transfer from stream to OverallResult
+    let mut bytes = web::BytesMut::new();
+    while let Some(item) = body.next().await {
+        bytes.extend_from_slice(&item?);
+    }
+    let query_res: OverallResult = serde_json::from_slice(&bytes).map_err(handle_err)?;
+
+
+    Ok(HttpResponse::Ok())
 }
 
 
