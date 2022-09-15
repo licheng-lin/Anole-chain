@@ -1,8 +1,10 @@
 - [ ] ToDoList 
     - [X] complete simchain-server
     - [X] format schnorr
-    - [X] complete signature use schnorr
+    - [x] complete signature use schnorr
+    - [x] query bug
     - [ ] query verify
+    - [ ] inter-index
 
 
 Input format
@@ -11,7 +13,14 @@ Input format
 block_id [address] {in/out, amount, timestamp}
 ```
 
-聚合签名目前采用第一种方式：通过矿工将一个区块内相同地址构建一个聚合签名，同块内索引一起存储在区块数据`blk_data`中。
+聚合签名目前采用第一种方式：通过矿工将一个区块内相同地址交易的内容进行拼接形成一个聚合签名，同块内索引一起存储在区块数据`blk_data`中。
+
+```
+[2022-09-14T08:17:00Z ERROR actix_http::response] Internal Server Error: Error("key must be a string", line: 0, column: 0)
+bug存在于AggregateSignature不能作为json数据格式的key，因为不能表示为string
+```
+
+
 
 ```index
 fn lr(arr_x: &[f32], arr_y: &[f32]) -> (f32, f32) {      //linear regression

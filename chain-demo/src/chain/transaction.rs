@@ -48,22 +48,6 @@ pub struct Transaction {
 }
 
 impl Transaction {
-
-    // pub fn create(obj: &RawTransaction) -> Self {
-    //     let id = TX_ID_CNT.fetch_add(1, Ordering::SeqCst) as IdType;
-    //     let block_id = obj.block_id.clone();
-    //     // let signature = sign_transaction();
-    //     let signature = String::from("need to complete");
-    //     let key = obj.key.clone();
-    //     let value = obj.value.clone();
-    //     Self {
-    //         id,
-    //         block_id,
-    //         key,
-    //         value,
-    //         signature
-    //     }
-    // }
     pub fn create_with_sk(tx: &RawTransaction, key_pair: &Keypair) -> Self {
         let id = TX_ID_CNT.fetch_add(1, Ordering::SeqCst) as IdType;
         let block_id = tx.block_id.clone();
