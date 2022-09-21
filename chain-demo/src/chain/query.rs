@@ -3,7 +3,7 @@ use anyhow::Ok;
 use howlong::Duration;
 use log::info;
 use serde::{Serialize, Deserialize};
-use std::{collections::HashMap, default::default};
+use std::collections::HashMap;
 #[derive(Debug, Default, Clone, Eq, PartialEq, Serialize, Deserialize)]
 pub struct QueryParam{
 
@@ -47,6 +47,7 @@ impl OverallResult {
         let mut signature: Option<Signature>;
         let mut aggre_sign: Signature;
         let mut block_header: BlockHeader;
+        let ctx = signing_context(b"");
         for (id, txs) in self.res_txs.0.iter(){
             signature = self.res_sigs.0.get(id).unwrap().to_owned();
             block_header = chain.lightnode_read_block_header(id.to_owned()).await?;
@@ -55,15 +56,18 @@ impl OverallResult {
                 //and the Vec stores boundary conditions 
                 continue;
             }
-            let aggre_string_txs: String = String::from("");
-            let key_pair = block_header.public_key;
+            let mut aggre_string_txs: String = String::from("");
+            let public_key = PublicKey::recover(block_header.public_key);
             for tx in txs {
                 aggre_string_txs += &serde_json::to_string(&tx).unwrap();
             }
-            
+            //verify failed, malicious actions exist
+            if public_key.verify(ctx.bytes(aggre_string_txs.as_bytes()), &signature.unwrap()).is_err() {
+                result.add(InvalidReason::InvalidSignature);
+            }
         }
 
-        Ok(())
+        Ok(result)
     }
 }
 
