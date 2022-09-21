@@ -45,7 +45,6 @@ impl OverallResult {
     async fn inner_verify(&self, chain: &impl LightNodeInterface) -> Result<VerifyResult>{
         let mut result = VerifyResult::default();
         let mut signature: Option<Signature>;
-        let mut aggre_sign: Signature;
         let mut block_header: BlockHeader;
         let ctx = signing_context(b"");
         for (id, txs) in self.res_txs.0.iter(){
