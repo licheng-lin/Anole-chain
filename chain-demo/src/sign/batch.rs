@@ -106,7 +106,7 @@ where
 {
     verify_batch_rng_bos(transcripts, signatures, public_keys, deduplicate_public_keys, rand_hack())
 }
-struct NotAnRng;
+pub struct NotAnRng;
 impl rand_core::RngCore for NotAnRng {
     fn next_u32(&mut self) -> u32 { rand_core::impls::next_u32_via_fill(self) }
 
@@ -231,7 +231,7 @@ where
 }
 
 
-trait HasR {
+pub trait HasR {
     #[allow(non_snake_case)]
     fn get_R(&self) -> &CompressedRistretto;
 }
