@@ -70,13 +70,13 @@ pub fn verify_batch_equation_Bos(
     bs: Scalar,
     zs: Vec<Scalar>,
     mut hrams: Vec<Scalar>,
-    signatures: &[Signature],
+    signatures: &[impl HasR],
     public_keys: &[PublicKey],
     deduplicate_public_keys: bool,
 ) -> SignatureResult<()>
 {
     // let B = once(Some(constants::RISTRETTO_BASEPOINT_POINT));
-    let R =signatures.iter().map(|sig| sig.R.decompress().unwrap());
+    let R =signatures.iter().map(|sig| sig.get_R().decompress().unwrap());
     let mut ppks = Vec::new();
     let As = if ! deduplicate_public_keys {
         // Multiply each H(R || A || M) by the random value

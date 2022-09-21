@@ -256,7 +256,7 @@ impl PublicKey {
             t.proto_name(b"Schnorr-sig");
             t.commit_point(b"sign:pk",self.as_compressed());
             t.commit_point(b"sign:R",&R[i]);
-            t.challenge_scalar(b"sign:c")  // context, message, A/public_key, R=rG
+            t.challenge_scalar(b"sign:c")  // context, message, A/public_key
         } ).collect();
 
        let k: Scalar = hrams.iter().sum();  // context, message, A/public_key, R=rG
