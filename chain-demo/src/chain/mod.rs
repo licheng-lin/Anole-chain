@@ -19,6 +19,9 @@ pub use build::*;
 pub mod query;
 pub use query::*;
 
+pub mod verify;
+pub use verify::*;
+
 pub type IdType = u32;
 // Timestamp size 4 bytes
 pub type TsType = u32; 
