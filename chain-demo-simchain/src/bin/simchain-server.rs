@@ -76,9 +76,13 @@ async fn web_verify(mut body: web::Payload) -> actix_web::Result<impl Responder>
         bytes.extend_from_slice(&item?);
     }
     let query_res: OverallResult = serde_json::from_slice(&bytes).map_err(handle_err)?;
-
-
-    Ok(HttpResponse::Ok())
+    let (verify_result, time) = query_res.verify(get_chain()).await.map_err(handle_err)?;
+    let response = VerifyResponse{
+        pass: verify_result.is_ok(),
+        fail_detail: verify_result,
+        verify_time_in_ms: time.as_millis() as u64,
+    };
+    Ok(HttpResponse::Ok().json(response))
 }
 
 
@@ -115,6 +119,7 @@ async fn main() -> actix_web::Result<()> {
             .route("/get/blk_data/{id}", web::get().to(web_get_blk_data))
             .route("/get/tx/{id}", web::get().to(web_get_transaction))
             .route("/query", web::post().to(web_query))
+            .route("/verify", web::post().to(web_verify))
     })
     .bind(opts.binding)?
     .run()
