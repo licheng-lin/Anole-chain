@@ -202,8 +202,9 @@ fn query_chain_no_inter_index(
     block_datas: &mut Vec<BlockData>,
     chain: &impl ReadInterface,
 ) -> Result<()>{
-    let mut block_index = chain.get_parameter()?.block_count.clone();
-    while block_index > 0 as u64 {
+    let start_index = chain.get_parameter()?.start_block_index;
+    let mut block_index = start_index + chain.get_parameter()?.block_count.clone() - 1;
+    while block_index >= start_index as u64 {
         let block_header = chain.read_block_header(block_index)?;
         let block_data = chain.read_block_data(block_index)?;
         if block_header.time_stamp >= q_param.value.unwrap()[0].unwrap()

@@ -41,6 +41,7 @@ pub struct Parameter {
     pub error_bounds: u8,
     pub inter_index: bool,
     pub intra_index: bool,
+    pub start_block_index: u64,
     pub block_count: u64,
 }
 

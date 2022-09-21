@@ -42,6 +42,8 @@ fn build_chian(data_path: &Path, out_db_path: &Path, param: &mut Parameter) -> R
     let mut chain = SimChain::create(out_db_path, param.clone())?;
     
     let mut block_count:u64 = 0;
+    let  start_block_index:u64 =  raw_txs.keys().min().unwrap().to_owned();
+   
 
     let key_pair: Keypair = Keypair::generate_with(OsRng);
     let mut pre_hash = Digest::default();
@@ -54,6 +56,7 @@ fn build_chian(data_path: &Path, out_db_path: &Path, param: &mut Parameter) -> R
         block_count += 1;
     }
     param.block_count = block_count;
+    param.start_block_index = start_block_index;
     chain.set_parameter(param.clone())?;
     Ok(())
 }
@@ -68,6 +71,7 @@ fn main() -> Result<()> {
         error_bounds: opts.error_bounds,
         inter_index: opts.inter_index,
         intra_index: opts.intra_index,
+        start_block_index: 0,
         block_count: 0,
     };
 
