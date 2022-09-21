@@ -22,9 +22,9 @@ pub use query::*;
 pub mod verify;
 pub use verify::*;
 
-pub type IdType = u32;
+pub type IdType = u64;
 // Timestamp size 4 bytes
-pub type TsType = u32; 
+pub type TsType = u64; 
 // public key size 4 bytes
 pub type PkType = CompressedRistretto;
 // private key 
@@ -33,15 +33,15 @@ pub type PkType = CompressedRistretto;
 pub type SnType = Signature;
 //key
 pub type KeyType = String;
-//transaction value
-pub type Txtype = u32;
+//transaction valßßue
+pub type Txtype = u64;
 
 #[derive(Debug, Clone, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub struct Parameter {
     pub error_bounds: u8,
     pub inter_index: bool,
     pub intra_index: bool,
-    pub block_count: u32,
+    pub block_count: u64,
 }
 
 #[async_trait::async_trait]

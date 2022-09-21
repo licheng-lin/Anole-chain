@@ -41,7 +41,7 @@ fn build_chian(data_path: &Path, out_db_path: &Path, param: &mut Parameter) -> R
     let raw_txs = load_raw_tx_from_file(data_path)?;
     let mut chain = SimChain::create(out_db_path, param.clone())?;
     
-    let mut block_count:u32 = 0;
+    let mut block_count:u64 = 0;
 
     let key_pair: Keypair = Keypair::generate_with(OsRng);
     let mut pre_hash = Digest::default();
