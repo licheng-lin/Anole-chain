@@ -8,7 +8,7 @@ static TX_ID_CNT: AtomicU64 = AtomicU64::new(0);
 #[derive(Debug, Default, Clone, Eq, PartialEq, Serialize, Deserialize)]
 pub struct TransactionValue {
     pub trans_in: bool,
-    pub trans_value: Txtype,
+    pub trans_value: TxType,
     pub time_stamp: TsType,
 }
 

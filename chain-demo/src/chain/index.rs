@@ -1,8 +1,7 @@
-use super::{IdType, TsType, PkType, SnType};
-use core::sync::atomic::{AtomicU64, Ordering};
+use super::{IdType, TsType, PkType};
 use std::collections::HashMap;
 use serde::{Deserialize, Serialize};
-use crate::{digest::*, Transaction, KeyType, AggregateSignature, Signature};
+use crate::{digest::*, KeyType, Signature, FloatType};
 
 // static INDEX_ID_CNT: AtomicU64 = AtomicU64::new(0);
 
@@ -35,4 +34,11 @@ impl Digestible for BlockHeader {
         state.update(&self.public_key.to_bytes());
         Digest::from(state.finalize())
     }
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct InterIndex {
+    pub start_timestamp: TsType,
+    pub regression_a: FloatType,
+    pub regression_b: FloatType,
 }

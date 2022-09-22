@@ -36,6 +36,9 @@ pub use boscoster::*;
 pub mod sign;
 pub use sign::*;
 
+pub mod aggregate;
+pub use aggregate::*;
+
 #[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize, Hash)]
 pub struct AggregateSignature{
     pub bs: Scalar,

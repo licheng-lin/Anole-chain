@@ -22,9 +22,9 @@ pub use query::*;
 pub mod verify;
 pub use verify::*;
 
-pub type IdType = u32;
+pub type IdType = u64;
 // Timestamp size 4 bytes
-pub type TsType = u32; 
+pub type TsType = u64; 
 // public key size 4 bytes
 pub type PkType = CompressedRistretto;
 // private key 
@@ -33,15 +33,18 @@ pub type PkType = CompressedRistretto;
 pub type SnType = Signature;
 //key
 pub type KeyType = String;
-//transaction value
-pub type Txtype = u32;
+//transaction valßßue
+pub type TxType = u64;
+// FloatType especially for linear regression
+pub type FloatType = f64;
 
 #[derive(Debug, Clone, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub struct Parameter {
     pub error_bounds: u8,
     pub inter_index: bool,
     pub intra_index: bool,
-    pub block_count: u32,
+    pub start_block_id: u64,
+    pub block_count: u64,
 }
 
 #[async_trait::async_trait]
@@ -54,8 +57,8 @@ pub trait ReadInterface {
     fn get_parameter(&self) -> Result<Parameter>;
     fn read_block_header(&self, id: IdType) -> Result<BlockHeader>;
     fn read_block_data(&self, id: IdType) -> Result<BlockData>;
-    // fn read_intra_index_node(&self, id: IdType) -> Result<IntraIndexNode>;
-    // fn read_skip_list_node(&self, id: IdType) -> Result<SkipListNode>;
+    fn read_inter_index(&self, timestamp: TsType) -> Result<InterIndex>;
+    fn read_inter_indexs(&self) -> Result<Vec<InterIndex>>;
     fn read_transaction(&self, id: IdType) -> Result<Transaction>;
 }
 
@@ -63,8 +66,7 @@ pub trait WriteInterface {
     fn set_parameter(&mut self, param: Parameter) -> Result<()>;
     fn write_block_header(&mut self, header: BlockHeader) -> Result<()>;
     fn write_block_data(&mut self, data: BlockData) -> Result<()>;
-    // fn write_intra_index_node(&mut self, node: IntraIndexNode) -> Result<()>;
-    // fn write_skip_list_node(&mut self, node: SkipListNode) -> Result<()>;
+    fn write_inter_index(&mut self, index: InterIndex) -> Result<()>;
     fn write_transaction(&mut self, tx: Transaction) -> Result<()>;
 }
 

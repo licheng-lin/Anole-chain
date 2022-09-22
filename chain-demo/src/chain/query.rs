@@ -114,10 +114,12 @@ pub fn historical_query(q_param: &QueryParam, chain: &impl ReadInterface)
 
     //query block_header & block_data within the query range of timestamp
     if param.inter_index {
-        
+        query_chain_inter_index(&q_param, &mut block_header, &mut block_data, chain)?;
     } else {
         query_chain_no_inter_index(&q_param, &mut block_header, &mut block_data, chain)?;
     }
+    info!("block_headers len : {:#?}",block_header.len());
+    info!("block_datas len : {:#?}",block_data.len());
     //query inside block to check if consist key
     let key = q_param.key.clone();
     for blk_data in block_data {
@@ -193,17 +195,52 @@ pub fn historical_query(q_param: &QueryParam, chain: &impl ReadInterface)
     Ok(result)
 }
 
-// fn query_chain_inter_index()
+/// return BlockData & BlockHeader falls in the timestamp range
+fn query_chain_inter_index(
+    q_param: &QueryParam,
+    block_headers: &mut Vec<BlockHeader>,
+    block_datas: &mut Vec<BlockData>,
+    chain: &impl ReadInterface,
+) -> Result<()>{
+    info!("query using inter_index");
+    let param = chain.get_parameter()?;
+    let inter_indexs = chain.read_inter_indexs()?;
+    let index_timestamps = inter_indexs.iter().map(|x| x.start_timestamp.to_owned() as TsType).collect::<Vec<TsType>>();
+    let left_timestamp = q_param.value.unwrap()[0].unwrap();
+    let right_timestamp = q_param.value.unwrap()[1].unwrap();
+    // use learned index with err
+    let start_inter_index = chain.read_inter_index(variant_binary_search(&index_timestamps[..], left_timestamp))?;
+    let end_inter_index = chain.read_inter_index(variant_binary_search(&index_timestamps[..], right_timestamp))?;
+    let mut start_id = (start_inter_index.regression_a * left_timestamp as FloatType + start_inter_index.regression_b - param.error_bounds as FloatType) as IdType;
+    let mut end_id = (end_inter_index.regression_a * right_timestamp as FloatType + end_inter_index.regression_b + param.error_bounds as FloatType) as IdType;
+    // do not exceed block_index boundary
+    start_id = start_id.max(param.start_block_id);
+    end_id = end_id.min(param.start_block_id + param.block_count - 1);
+    info!("start_id {}, end_id {}",start_id, end_id);
+    // eliminate err_bounds
+    for index in start_id..end_id + 1 {
+        let block_header = chain.read_block_header(index)?;
+        let block_data = chain.read_block_data(index)?;
+        if block_header.time_stamp >= left_timestamp
+        && block_header.time_stamp <= right_timestamp{
+            block_headers.push(block_header.to_owned());
+            block_datas.push(block_data.to_owned());
+        }
+    }
+    
+    Ok(())
+}
 
-// return BlockData & BlockHeader without checking if data consist
+/// return BlockData & BlockHeader falls in the timestamp range
 fn query_chain_no_inter_index(
     q_param: &QueryParam,
     block_headers: &mut Vec<BlockHeader>,
     block_datas: &mut Vec<BlockData>,
     chain: &impl ReadInterface,
 ) -> Result<()>{
-    let mut block_index = chain.get_parameter()?.block_count.clone();
-    while block_index > 0 as u32 {
+    let start_index = chain.get_parameter()?.start_block_id;
+    let mut block_index = start_index + chain.get_parameter()?.block_count.clone() - 1;
+    while block_index >= start_index as u64 {
         let block_header = chain.read_block_header(block_index)?;
         let block_data = chain.read_block_data(block_index)?;
         if block_header.time_stamp >= q_param.value.unwrap()[0].unwrap()
@@ -211,28 +248,8 @@ fn query_chain_no_inter_index(
             block_headers.push(block_header.to_owned());
             block_datas.push(block_data.to_owned());
         }
-        
         block_index -= 1;
     }
 
     Ok(())
 }
-
-// fn query_block_intra_index()
-
-// fn query_block_no_intra_index(
-//     q_param: &QueryParam,
-//     block_headers: & Vec<BlockHeader>,
-//     block_datas: & Vec<BlockData>,
-//     res_txs: &mut ResultTxs,
-//     chain: &impl ReadInterface,
-// ) -> Result<()>{
-//     let key = q_param.key.clone();
-//     for blk_data in block_datas {
-//         if blk_data.aggre_signs.contains_key(&key) {
-
-//         }
-//     }
-
-//     Ok(())
-// }

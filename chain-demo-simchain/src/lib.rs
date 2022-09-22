@@ -1,8 +1,8 @@
 #[macro_use]
 extern crate log;
 
-use anyhow::{Context, Result};
-use rocksdb::{self, DB};
+use anyhow::{Context, Result, Ok};
+use rocksdb::{self, DB, IteratorMode};
 use std::fs;
 use std::path::{Path, PathBuf};
 use chain_demo::*;
@@ -12,6 +12,7 @@ pub struct SimChain {
     param: Parameter,
     block_header_db: DB,
     block_data_db: DB,
+    inter_index_db:DB,
     tx_db: DB,
 }
 
@@ -30,6 +31,7 @@ impl SimChain {
             param,
             block_header_db: DB::open(&opts, path.join("blk_header.db"))?,
             block_data_db: DB::open(&opts, path.join("blk_data.db"))?,
+            inter_index_db: DB::open(&opts, path.join("inter_index.db"))?,
             tx_db: DB::open(&opts, path.join("tx.db"))?,
             
         })
@@ -43,6 +45,7 @@ impl SimChain {
             param: serde_json::from_str::<Parameter>(&fs::read_to_string(path.join("param.json"))?)?,
             block_header_db: DB::open_default(path.join("blk_header.db"))?,
             block_data_db: DB::open_default(path.join("blk_data.db"))?,
+            inter_index_db: DB::open_default(path.join("inter_index.db"))?,
             tx_db: DB::open_default(path.join("tx.db"))?,
         })
     }
@@ -76,6 +79,20 @@ impl ReadInterface for SimChain {
             .context("failed to read block data")?;
         Ok(bincode::deserialize::<BlockData>(&data[..])?)
     }
+    fn read_inter_index(&self, timestamp: TsType) -> Result<InterIndex>{
+        let data = self
+            .inter_index_db
+            .get(timestamp.to_le_bytes())?
+            .context("failed to read inter index")?;
+        Ok(bincode::deserialize::<InterIndex>(&data[..])?)
+    }
+    fn read_inter_indexs(&self) -> Result<Vec<InterIndex>>{
+        let mut inter_indexs: Vec<InterIndex> = Vec::new();
+        for (_timestamp, inter_index) in self.inter_index_db.iterator(IteratorMode::Start){
+            inter_indexs.push(bincode::deserialize::<InterIndex>(&inter_index[..])?);
+        }
+        Ok(inter_indexs)
+    }
     // fn read_intra_index_node(&self, id: IdType) -> Result<IntraIndexNode>;
     // fn read_skip_list_node(&self, id: IdType) -> Result<SkipListNode>;
     fn read_transaction(&self, id: IdType) -> Result<Transaction>{
@@ -104,6 +121,12 @@ impl WriteInterface for SimChain {
         let bytes = bincode::serialize(&data)?;
         self.block_data_db
             .put(data.block_id.to_le_bytes(), bytes)?;
+        Ok(())
+    }
+    fn write_inter_index(&mut self, index: InterIndex) -> Result<()>{
+        let bytes = bincode::serialize(&index)?;
+        self.inter_index_db
+            .put(index.start_timestamp.to_le_bytes(), bytes)?;
         Ok(())
     }
     // fn write_intra_index_node(&mut self, node: IntraIndexNode) -> Result<()>;
