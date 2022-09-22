@@ -56,10 +56,15 @@ async fn web_get_param() -> actix_web::Result<impl Responder> {
     Ok(HttpResponse::Ok().json(data))
 }
 
+async fn web_get_inter_indexs() -> actix_web::Result<impl Responder> {
+    info!("call get_inter_indexs");
+    let data = get_chain().read_inter_indexs().map_err(handle_err)?;
+    Ok(HttpResponse::Ok().json(data))
+}
+
 async fn web_query(query_param: web::Json<QueryParam>) -> actix_web::Result<impl Responder>{
     info!("into web_query");
     let result = historical_query(&query_param, get_chain()).map_err(handle_err)?;
-    info!("{:#?}",result);
     Ok(HttpResponse::Ok().json(result))
 }
 
@@ -119,6 +124,7 @@ async fn main() -> actix_web::Result<()> {
             .route("/get/blk_header/{id}", web::get().to(web_get_blk_header))
             .route("/get/blk_data/{id}", web::get().to(web_get_blk_data))
             .route("/get/inter_index/{timestamp}", web::get().to(web_get_inter_index))
+            .route("/get/inter_indexs", web::get().to(web_get_inter_indexs))
             .route("/get/tx/{id}", web::get().to(web_get_transaction))
             .route("/query", web::post().to(web_query))
             .route("/verify", web::post().to(web_verify))

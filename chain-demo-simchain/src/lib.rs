@@ -1,8 +1,8 @@
 #[macro_use]
 extern crate log;
 
-use anyhow::{Context, Result};
-use rocksdb::{self, DB};
+use anyhow::{Context, Result, Ok};
+use rocksdb::{self, DB, IteratorMode};
 use std::fs;
 use std::path::{Path, PathBuf};
 use chain_demo::*;
@@ -85,6 +85,13 @@ impl ReadInterface for SimChain {
             .get(timestamp.to_le_bytes())?
             .context("failed to read inter index")?;
         Ok(bincode::deserialize::<InterIndex>(&data[..])?)
+    }
+    fn read_inter_indexs(&self) -> Result<Vec<InterIndex>>{
+        let mut inter_indexs: Vec<InterIndex> = Vec::new();
+        for (_timestamp, inter_index) in self.inter_index_db.iterator(IteratorMode::Start){
+            inter_indexs.push(bincode::deserialize::<InterIndex>(&inter_index[..])?);
+        }
+        Ok(inter_indexs)
     }
     // fn read_intra_index_node(&self, id: IdType) -> Result<IntraIndexNode>;
     // fn read_skip_list_node(&self, id: IdType) -> Result<SkipListNode>;

@@ -43,7 +43,7 @@ pub struct Parameter {
     pub error_bounds: u8,
     pub inter_index: bool,
     pub intra_index: bool,
-    pub start_block_index: u64,
+    pub start_block_id: u64,
     pub block_count: u64,
 }
 
@@ -58,6 +58,7 @@ pub trait ReadInterface {
     fn read_block_header(&self, id: IdType) -> Result<BlockHeader>;
     fn read_block_data(&self, id: IdType) -> Result<BlockData>;
     fn read_inter_index(&self, timestamp: TsType) -> Result<InterIndex>;
+    fn read_inter_indexs(&self) -> Result<Vec<InterIndex>>;
     fn read_transaction(&self, id: IdType) -> Result<Transaction>;
 }
 

@@ -94,7 +94,7 @@ pub fn linear_regression(arr_x: &[TsType], arr_y: &[IdType]) -> (FloatType, Floa
 /// input
 /// @arr_px
 /// @value: t
-pub fn variant_binary_search(arr_px: &[FloatType], t: FloatType) -> FloatType {
+pub fn variant_binary_search(arr_px: &[TsType], t: TsType) -> TsType {
     let len_px = arr_px.len();
     let mut low = 0;
     let mut high = len_px - 1;

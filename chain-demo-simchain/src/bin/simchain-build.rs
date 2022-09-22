@@ -42,7 +42,7 @@ fn build_chian(data_path: &Path, out_db_path: &Path, param: &mut Parameter) -> R
     let mut chain = SimChain::create(out_db_path, param.clone())?;
     
     let mut block_count: IdType = 0;
-    let start_block_index: IdType =  raw_txs.keys().min().unwrap().to_owned();
+    let start_block_id: IdType =  raw_txs.keys().min().unwrap().to_owned();
     let mut block_headers: Vec<BlockHeader> = Vec::new();
     
 
@@ -58,7 +58,7 @@ fn build_chian(data_path: &Path, out_db_path: &Path, param: &mut Parameter) -> R
         block_count += 1;
     }
     param.block_count = block_count;
-    param.start_block_index = start_block_index;
+    param.start_block_id = start_block_id;
     chain.set_parameter(param.clone())?;
     build_inter_index(block_headers, &mut chain)?;
     Ok(())
@@ -74,7 +74,7 @@ fn main() -> Result<()> {
         error_bounds: opts.error_bounds,
         inter_index: opts.inter_index,
         intra_index: opts.intra_index,
-        start_block_index: 0,
+        start_block_id: 0,
         block_count: 0,
     };
 

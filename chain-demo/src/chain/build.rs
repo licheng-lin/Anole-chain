@@ -25,9 +25,9 @@ pub fn build_block<'a>(
     
     // let param = chain.get_parameter()?;
     let txs: Vec<Transaction> = raw_txs.map(|rtx: &RawTransaction| Transaction::create_with_sk(rtx, &key_pair)).collect();
-    let mut time_stamp: TsType = Default::default();
+    let mut _time_stamp: TsType = Default::default();
     let mut tx_ids: Vec<IdType> = Vec::new();
-    time_stamp = txs[0].value.time_stamp;
+    _time_stamp = txs[0].value.time_stamp;
     // intra-index & aggre_sign
     let mut intra_b_index: BTreeMap<KeyType, IdType>= BTreeMap::new();
     let intra_index: HashMap<KeyType, IdType>;
@@ -68,7 +68,7 @@ pub fn build_block<'a>(
     let block_header = BlockHeader{
         block_id,
         pre_hash,
-        time_stamp,
+        time_stamp: _time_stamp,
         public_key,
     };
 
