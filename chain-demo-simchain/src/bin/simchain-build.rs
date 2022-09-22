@@ -41,9 +41,10 @@ fn build_chian(data_path: &Path, out_db_path: &Path, param: &mut Parameter) -> R
     let raw_txs = load_raw_tx_from_file(data_path)?;
     let mut chain = SimChain::create(out_db_path, param.clone())?;
     
-    let mut block_count:u64 = 0;
-    let  start_block_index:u64 =  raw_txs.keys().min().unwrap().to_owned();
-   
+    let mut block_count: IdType = 0;
+    let start_block_index: IdType =  raw_txs.keys().min().unwrap().to_owned();
+    let mut block_headers: Vec<BlockHeader> = Vec::new();
+    
 
     let key_pair: Keypair = Keypair::generate_with(OsRng);
     let mut pre_hash = Digest::default();
@@ -52,12 +53,14 @@ fn build_chian(data_path: &Path, out_db_path: &Path, param: &mut Parameter) -> R
         let mut sorted_txs = tx.clone();
         sorted_txs.sort_by_key(|tx| tx.key.clone());
         let block_header = build_block(*id, pre_hash, sorted_txs.iter(), &key_pair, &mut chain)?;
+        block_headers.push(block_header.clone());
         pre_hash = block_header.to_digest();
         block_count += 1;
     }
     param.block_count = block_count;
     param.start_block_index = start_block_index;
     chain.set_parameter(param.clone())?;
+    build_inter_index(block_headers, &mut chain)?;
     Ok(())
 }
 

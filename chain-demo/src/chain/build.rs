@@ -1,8 +1,5 @@
-use std::collections::{HashMap, BTreeMap, hash_map::RandomState};
-
+use std::collections::{HashMap, BTreeMap};
 use log::info;
-use rsa::pkcs8::der::Encodable;
-
 use crate::Digest;
 use super::*;
 
@@ -86,4 +83,53 @@ pub fn build_block<'a>(
     chain.write_block_data(block_data.clone())?;
 
     Ok(block_header)
+}
+
+pub fn build_inter_index(
+    block_headers: Vec<BlockHeader>,
+    chain: &mut (impl ReadInterface + WriteInterface)
+) -> Result<()>{
+    info!("build inter index");
+    let mut inter_indexs: BTreeMap<TsType, InterIndex> = BTreeMap::new();
+    let timestamps: Vec<TsType> = Vec::from_iter(block_headers.iter().map(|header| header.time_stamp.to_owned()));
+    let heights: Vec<IdType> = Vec::from_iter(block_headers.iter().map(|header| header.block_id.to_owned()));
+    let param = chain.get_parameter().unwrap();
+    let err_bounds = param.error_bounds as FloatType;
+    let mut pre_timestamp = timestamps.first().unwrap().to_owned();
+    // init inter_index
+    inter_indexs.entry(pre_timestamp)
+        .or_insert(InterIndex { start_timestamp: pre_timestamp, regression_a: 1.0, regression_b: 1.0 });
+    
+    for block_header in block_headers.iter(){
+        let mut inter_index = inter_indexs.get(&pre_timestamp).unwrap().to_owned();
+        let point_x = block_header.time_stamp as FloatType;
+        let point_y = block_header.block_id as FloatType;
+        if is_within_boundary(inter_index.regression_a, inter_index.regression_b, point_x, point_y, err_bounds) {
+            continue;
+        }else {
+            let start_index = timestamps.binary_search(&pre_timestamp).unwrap();
+            let end_index = timestamps.binary_search(&block_header.time_stamp).unwrap();
+            let (regression_a, regression_b) = linear_regression(&timestamps[start_index..end_index + 1], &heights[start_index..end_index + 1]);
+            if is_within_boundary(regression_a, regression_b, point_x, point_y, err_bounds) {
+                inter_index.regression_a = regression_a;
+                inter_index.regression_b = regression_b;
+                // update value
+                inter_indexs.insert(pre_timestamp.clone(), inter_index.clone());
+                continue;
+            }else {
+                // start new piecewise linear function
+                pre_timestamp = block_header.time_stamp;
+                inter_indexs.entry(pre_timestamp)
+                    .or_insert(InterIndex { start_timestamp: pre_timestamp, regression_a: 1.0, regression_b: 1.0 });
+                
+            }
+
+        }   
+    }
+    
+    //write inter_indexs ---
+    for inter_index in inter_indexs.values() {
+        chain.write_inter_index(inter_index.to_owned())?;
+    }
+    Ok(())
 }

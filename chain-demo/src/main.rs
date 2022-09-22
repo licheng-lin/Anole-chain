@@ -1,5 +1,5 @@
 // use schnorr::context::SigningTranscript;
-use chain_demo::{sign::{PublicKey,Keypair,Signature, signing_context,verify_batch_bos,sign_aggregate,verify_batch}, transaction};
+use chain_demo::sign::{PublicKey,Keypair,Signature, signing_context,verify_batch_bos,sign_aggregate,verify_batch};
 use chain_demo::aggregate::*;
 use curve25519_dalek::ristretto::CompressedRistretto;
 use rand_core::OsRng;
@@ -73,10 +73,10 @@ fn main(){
     }
 
 
-    ///   聚合签名新方案，块内采用方案一的聚合签名，即矿工对同一区块相同地址交易进行拼接，并调用keypair.sign函数进行签名；
-    ///   块间采用方案二的聚合签名，调用AggSignature::sign_aggregate函数对多个签名进行聚合，message为每个区块拼接后的数据；
-    ///   验证时调用aggsig.verify进行验证
-    ///   此处messages[i]为一个区块聚合后的信息
+    //   聚合签名新方案，块内采用方案一的聚合签名，即矿工对同一区块相同地址交易进行拼接，并调用keypair.sign函数进行签名；
+    //   块间采用方案二的聚合签名，调用AggSignature::sign_aggregate函数对多个签名进行聚合，message为每个区块拼接后的数据；
+    //   验证时调用aggsig.verify进行验证
+    //   此处messages[i]为一个区块聚合后的信息
     let messages = [
         "Watch closely everyone, I'm going to show you how to kill a god.",
         "I'm not a cryptographer I just encrypt a lot.",

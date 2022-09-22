@@ -45,6 +45,7 @@ macro_rules! impl_get_info {
 
 impl_get_info!(web_get_blk_header, read_block_header);
 impl_get_info!(web_get_blk_data, read_block_data);
+impl_get_info!(web_get_inter_index, read_inter_index);
 impl_get_info!(web_get_transaction, read_transaction);
 
 
@@ -117,6 +118,7 @@ async fn main() -> actix_web::Result<()> {
             .route("/get/param", web::get().to(web_get_param))
             .route("/get/blk_header/{id}", web::get().to(web_get_blk_header))
             .route("/get/blk_data/{id}", web::get().to(web_get_blk_data))
+            .route("/get/inter_index/{timestamp}", web::get().to(web_get_inter_index))
             .route("/get/tx/{id}", web::get().to(web_get_transaction))
             .route("/query", web::post().to(web_query))
             .route("/verify", web::post().to(web_verify))
