@@ -2,7 +2,7 @@
 extern crate log;
 
 use anyhow::{Context, Result, Ok};
-use rocksdb::{self, DB, IteratorMode};
+use rocksdb::{self, DB};
 use std::fs;
 use std::path::{Path, PathBuf};
 use chain_demo::*;
@@ -93,10 +93,6 @@ impl ReadInterface for SimChain {
             info!("read_inter_indexs timestamps {}",timestamp.to_owned());
             inter_indexs.push(self.read_inter_index(timestamp.to_owned())?);
         }
-        // for (_timestamp, inter_index) in self.inter_index_db.iterator(IteratorMode::Start){
-        //     info!("read_inter_indexs timestamps {:#?}",bincode::deserialize::<TsType>(&_timestamp[..])?);
-        //     inter_indexs.push(bincode::deserialize::<InterIndex>(&inter_index[..])?);
-        // }
         Ok(inter_indexs)
     }
     // fn read_intra_index_node(&self, id: IdType) -> Result<IntraIndexNode>;

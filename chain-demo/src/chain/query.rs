@@ -11,6 +11,8 @@ pub struct QueryParam{
     pub key: KeyType,
     #[serde(rename = "time_stamp")]
     pub value: Option<[Option<TsType>; 2]>,
+    pub inter_index: bool,
+    pub intra_index: bool,
 
 }
 
@@ -95,7 +97,10 @@ pub fn historical_query(q_param: &QueryParam, chain: &impl ReadInterface)
  -> Result<OverallResult>{
     info!("process query {:?}", q_param);
 
-    let param = chain.get_parameter()?;
+    let mut param = chain.get_parameter()?;
+    param.intra_index = q_param.intra_index;
+    param.inter_index = q_param.inter_index;
+    
     let cpu_timer = howlong::ProcessCPUTimer::new();
     let timer = howlong::HighResolutionTimer::new();
     let mut res_txs = ResultTxs::new();
