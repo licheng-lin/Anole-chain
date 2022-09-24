@@ -5,6 +5,7 @@
     - [x] query bug
     - [x] query verify
     - [x] inter-index
+    - [ ] aggregate signature
 
 ## Necessary Knowledge
 
