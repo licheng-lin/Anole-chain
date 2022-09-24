@@ -84,7 +84,9 @@ Parameters are followed with this request in JSON format
     "time_stamp": [
         1655512688,
         1655512688
-    ]
+    ],
+    "inter_index": true,
+    "intra_index": true
 }
 ```
 
