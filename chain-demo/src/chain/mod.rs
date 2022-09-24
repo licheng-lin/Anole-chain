@@ -45,6 +45,7 @@ pub struct Parameter {
     pub intra_index: bool,
     pub start_block_id: u64,
     pub block_count: u64,
+    pub inter_index_timestamps: Vec<TsType>,
 }
 
 #[async_trait::async_trait]

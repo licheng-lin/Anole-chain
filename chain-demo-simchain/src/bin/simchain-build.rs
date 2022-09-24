@@ -76,6 +76,7 @@ fn main() -> Result<()> {
         intra_index: opts.intra_index,
         start_block_id: 0,
         block_count: 0,
+        inter_index_timestamps: Vec::new(),
     };
 
     build_chian(&opts.input_data_path, &opts.db_path, &mut param)?;

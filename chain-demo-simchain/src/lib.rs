@@ -19,6 +19,7 @@ pub struct SimChain {
 impl SimChain {
     pub fn create(path: &Path, param: Parameter) -> Result<Self> {
         info!("create db at {:?}", path);
+        fs::remove_dir_all(path).context(format!("failed to remove dir {:?}", path))?;
         fs::create_dir_all(path).context(format!("failed to create dir {:?}", path))?;
         fs::write(
             path.join("param.json"),
@@ -88,9 +89,14 @@ impl ReadInterface for SimChain {
     }
     fn read_inter_indexs(&self) -> Result<Vec<InterIndex>>{
         let mut inter_indexs: Vec<InterIndex> = Vec::new();
-        for (_timestamp, inter_index) in self.inter_index_db.iterator(IteratorMode::Start){
-            inter_indexs.push(bincode::deserialize::<InterIndex>(&inter_index[..])?);
+        for timestamp in &self.param.inter_index_timestamps {
+            info!("read_inter_indexs timestamps {}",timestamp.to_owned());
+            inter_indexs.push(self.read_inter_index(timestamp.to_owned())?);
         }
+        // for (_timestamp, inter_index) in self.inter_index_db.iterator(IteratorMode::Start){
+        //     info!("read_inter_indexs timestamps {:#?}",bincode::deserialize::<TsType>(&_timestamp[..])?);
+        //     inter_indexs.push(bincode::deserialize::<InterIndex>(&inter_index[..])?);
+        // }
         Ok(inter_indexs)
     }
     // fn read_intra_index_node(&self, id: IdType) -> Result<IntraIndexNode>;
