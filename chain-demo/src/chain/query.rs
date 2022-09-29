@@ -80,6 +80,7 @@ impl OverallResult {
         let mut sign_ctx: Vec<String> = Vec::new(); 
         let mut aggre_string_txs: String = String::from("");
         let mut public_keys: Vec<PublicKey> = Vec::new();
+        
         for (index, signature) in self.res_sigs.0.iter(){
             if signature.ne(&None) {
                 for tx in self.res_txs.0.get(index).unwrap().iter() {
@@ -95,6 +96,23 @@ impl OverallResult {
                     )
                 );
                 aggre_string_txs.clear();
+            } else {
+                // boundary txs add to signature
+                for tx in self.res_txs.0.get(index).unwrap().iter() {
+                    aggre_string_txs += &(String::from(tx.block_id.to_string())
+                    + &String::from(tx.key.clone())
+                    + &String::from(tx.value.to_string()));
+                    sign_ctx.push(aggre_string_txs.clone());
+                    public_keys.push(
+                        PublicKey::recover(
+                            chain.lightnode_read_block_header(*index)
+                            .await
+                            .unwrap()
+                            .public_key
+                        )
+                    );
+                    aggre_string_txs.clear();
+                }
             }
         }
         let ctx = signing_context(b"");
@@ -103,6 +121,7 @@ impl OverallResult {
             result.add(InvalidReason::InvalidSignature);
         }
 
+        info!("verfy res_sigs :{:#?}",self.res_sigs);
         Ok(result)
     }
 }
@@ -252,12 +271,30 @@ pub fn historical_query(q_param: &QueryParam, chain: &impl ReadInterface)
                 )
             );
             aggre_string_txs.clear();
+        } else {
+            // boundary txs add to signature
+            for tx in res_txs.0.get(index).unwrap().iter() {
+                aggre_string_txs +=  &(String::from(tx.block_id.to_string())
+                + &String::from(tx.key.clone())
+                + &String::from(tx.value.to_string()));
+                sign_ctx.push(aggre_string_txs.clone());
+                signatures.push(tx.signature.clone());
+                public_keys.push(
+                    PublicKey::recover(
+                        chain.read_block_header(*index)
+                        .unwrap()
+                        .public_key
+                    )
+                );
+                aggre_string_txs.clear();
+            }
         }
     } 
     aggre_sign = Some(AggSignature::sign_aggregate(&sign_ctx[..], &signatures[..], &public_keys[..]));
     result.aggre_sign = aggre_sign.clone();
     result.query_time_ms = timer.elapsed().as_millis() as u64;
     info!("used time: {:?}", cpu_timer.elapsed());
+    info!("query res_sigs{:#?}", res_sigs);
     Ok(result)
 }
 
@@ -284,7 +321,8 @@ fn query_chain_inter_index(
     end_id = end_id.min(param.start_block_id + param.block_count - 1);
     info!("start_id {}, end_id {}",start_id, end_id);
     // eliminate err_bounds
-    for index in start_id..end_id + 1 {
+    let index = end_id;
+    while index >= start_id{
         let block_header = chain.read_block_header(index)?;
         let block_data = chain.read_block_data(index)?;
         if block_header.time_stamp >= left_timestamp
@@ -293,6 +331,15 @@ fn query_chain_inter_index(
             block_datas.push(block_data.to_owned());
         }
     }
+    // for index in start_id..end_id + 1 {
+    //     let block_header = chain.read_block_header(index)?;
+    //     let block_data = chain.read_block_data(index)?;
+    //     if block_header.time_stamp >= left_timestamp
+    //     && block_header.time_stamp <= right_timestamp{
+    //         block_headers.push(block_header.to_owned());
+    //         block_datas.push(block_data.to_owned());
+    //     }
+    // }
     
     Ok(())
 }
@@ -303,7 +350,7 @@ fn query_chain_no_inter_index(
     block_headers: &mut Vec<BlockHeader>,
     block_datas: &mut Vec<BlockData>,
     chain: &impl ReadInterface,
-) -> Result<()>{
+) -> Result<(IdType, IdType)>{
     let start_index = chain.get_parameter()?.start_block_id;
     let mut block_index = start_index + chain.get_parameter()?.block_count.clone() - 1;
     while block_index >= start_index as u64 {

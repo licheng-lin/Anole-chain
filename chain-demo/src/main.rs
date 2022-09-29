@@ -145,7 +145,7 @@ fn main(){
     //    }
     }
 
-
+    //验证部分，使用区块头存储数据还原区块i的公钥，用区块i的公钥验证区块i内相关交易
     let public_keys: Vec<PublicKey> = compressed_ristretto.iter().map(|cr| PublicKey::recover(*cr)).collect();
     for i in 0..public_keys.len(){
         if public_keys[i].verify(ctx.bytes(messages[i]), &signatures[i]).is_ok(){
