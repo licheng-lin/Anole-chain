@@ -80,8 +80,11 @@ impl OverallResult {
         let mut sign_ctx: Vec<String> = Vec::new(); 
         let mut aggre_string_txs: String = String::from("");
         let mut public_keys: Vec<PublicKey> = Vec::new();
-        
-        for (index, signature) in self.res_sigs.0.iter(){
+        let mut signature:Option<Signature>;
+        let mut block_indexs:Vec<IdType> = Vec::from_iter(self.res_sigs.0.iter().map(|(x,_y)|x.to_owned()));
+        block_indexs.sort();
+        for index in block_indexs.iter(){
+            signature = self.res_sigs.0.get(index).unwrap().to_owned();
             if signature.ne(&None) {
                 for tx in self.res_txs.0.get(index).unwrap().iter() {
                     aggre_string_txs += &serde_json::to_string(tx).unwrap();
@@ -120,8 +123,6 @@ impl OverallResult {
         if self.aggre_sign.as_ref().unwrap().verify(transcripts, &sign_ctx[..], &public_keys[..], false).is_err() {
             result.add(InvalidReason::InvalidSignature);
         }
-
-        info!("verfy res_sigs :{:#?}",self.res_sigs);
         Ok(result)
     }
 }
@@ -256,7 +257,11 @@ pub fn historical_query(q_param: &QueryParam, chain: &impl ReadInterface)
     let mut aggre_string_txs: String = String::from("");
     let mut signatures: Vec<Signature> = Vec::new();
     let mut public_keys: Vec<PublicKey> = Vec::new();
-    for (index, signature) in res_sigs.0.iter(){
+    let mut signature:Option<Signature>;
+    let mut block_indexs:Vec<IdType> = Vec::from_iter(res_sigs.0.iter().map(|(x,_y)|x.to_owned()));
+    block_indexs.sort();
+    for index in block_indexs.iter(){
+        signature = res_sigs.0.get(index).unwrap().to_owned();
         if signature.ne(&None) {
             for tx in res_txs.0.get(index).unwrap().iter() {
                 aggre_string_txs += &serde_json::to_string(tx).unwrap();
@@ -294,7 +299,6 @@ pub fn historical_query(q_param: &QueryParam, chain: &impl ReadInterface)
     result.aggre_sign = aggre_sign.clone();
     result.query_time_ms = timer.elapsed().as_millis() as u64;
     info!("used time: {:?}", cpu_timer.elapsed());
-    info!("query res_sigs{:#?}", res_sigs);
     Ok(result)
 }
 
@@ -321,7 +325,7 @@ fn query_chain_inter_index(
     end_id = end_id.min(param.start_block_id + param.block_count - 1);
     info!("start_id {}, end_id {}",start_id, end_id);
     // eliminate err_bounds
-    let index = end_id;
+    let mut index = end_id;
     while index >= start_id{
         let block_header = chain.read_block_header(index)?;
         let block_data = chain.read_block_data(index)?;
@@ -330,16 +334,9 @@ fn query_chain_inter_index(
             block_headers.push(block_header.to_owned());
             block_datas.push(block_data.to_owned());
         }
+        index -= 1;
     }
-    // for index in start_id..end_id + 1 {
-    //     let block_header = chain.read_block_header(index)?;
-    //     let block_data = chain.read_block_data(index)?;
-    //     if block_header.time_stamp >= left_timestamp
-    //     && block_header.time_stamp <= right_timestamp{
-    //         block_headers.push(block_header.to_owned());
-    //         block_datas.push(block_data.to_owned());
-    //     }
-    // }
+
     
     Ok(())
 }
