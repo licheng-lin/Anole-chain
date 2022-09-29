@@ -60,7 +60,9 @@ fn build_chian(data_path: &Path, out_db_path: &Path, param: &mut Parameter) -> R
     param.block_count = block_count;
     param.start_block_id = start_block_id;
     chain.set_parameter(param.clone())?;
+    let timer = howlong::HighResolutionTimer::new();
     build_inter_index(block_headers, &mut chain)?;
+    info!("build inter_index time {:#?}", timer.elapsed());
     Ok(())
 }
 

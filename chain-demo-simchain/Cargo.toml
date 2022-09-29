@@ -20,3 +20,4 @@ serde_json = "1.0"
 structopt = "0.3"
 chain-demo = {path = "../chain-demo"}
 rand_core = "0.6"
+howlong = "0.1"
