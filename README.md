@@ -5,7 +5,8 @@
     - [x] query bug
     - [x] query verify
     - [x] inter-index
-    - [ ] aggregate signature
+    - [x] aggregate signature
+    - [ ] error_bounds bugs
 
 ## Necessary Knowledge
 
