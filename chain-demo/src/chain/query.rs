@@ -350,7 +350,7 @@ fn query_chain_no_inter_index(
     block_headers: &mut Vec<BlockHeader>,
     block_datas: &mut Vec<BlockData>,
     chain: &impl ReadInterface,
-) -> Result<(IdType, IdType)>{
+) -> Result<()>{
     let start_index = chain.get_parameter()?.start_block_id;
     let mut block_index = start_index + chain.get_parameter()?.block_count.clone() - 1;
     while block_index >= start_index as u64 {
