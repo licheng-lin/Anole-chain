@@ -38,13 +38,14 @@ pub type TxType = u64;
 // FloatType especially for linear regression
 pub type FloatType = f64;
 
-#[derive(Debug, Clone, Eq, PartialEq, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Parameter {
-    pub error_bounds: u8,
+    pub error_bounds: FloatType,
     pub inter_index: bool,
     pub intra_index: bool,
     pub start_block_id: u64,
     pub block_count: u64,
+    pub inter_index_timestamps: Vec<TsType>,
 }
 
 #[async_trait::async_trait]

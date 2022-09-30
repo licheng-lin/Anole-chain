@@ -11,6 +11,8 @@ pub struct QueryParam{
     pub key: KeyType,
     #[serde(rename = "time_stamp")]
     pub value: Option<[Option<TsType>; 2]>,
+    pub inter_index: bool,
+    pub intra_index: bool,
 
 }
 
@@ -21,6 +23,7 @@ pub struct OverallResult{
     #[serde(rename = "result")]
     pub res_txs: ResultTxs,
     pub res_sigs: ResultSigs,
+    pub aggre_sign: Option<AggSignature>,
     pub query_param: QueryParam,
     pub query_time_ms: u64,
     pub use_inter_index: bool,
@@ -35,37 +38,91 @@ impl OverallResult {
     -> Result<(VerifyResult, Duration)>{
         let cpu_timer = howlong::ProcessCPUTimer::new();
         let timer = howlong::HighResolutionTimer::new();
-        let res = self.inner_verify(chain).await?;
+        // let res = self.inner_verify(chain).await?;
+        let res = self.aggre_verify(chain).await?;
         let time = timer.elapsed();
         info!("verify used time {}",cpu_timer.elapsed());
         
         Ok((res, time))
     }
 
-    async fn inner_verify(&self, chain: &impl LightNodeInterface) -> Result<VerifyResult>{
+    // async fn inner_verify(&self, chain: &impl LightNodeInterface) -> Result<VerifyResult>{
+    //     let mut result = VerifyResult::default();
+    //     let mut signature: Option<Signature>;
+    //     let mut block_header: BlockHeader;
+    //     let ctx = signing_context(b"");
+    //     for (id, txs) in self.res_txs.0.iter(){
+    //         signature = self.res_sigs.0.get(id).unwrap().to_owned();
+    //         block_header = chain.lightnode_read_block_header(id.to_owned()).await?;
+    //         if signature.eq(&Option::None){
+    //             //this means no satisfying txs in block(id)
+    //             //and the Vec stores boundary conditions 
+    //             continue;
+    //         }
+    //         let mut aggre_string_txs: String = String::from("");
+    //         let public_key = PublicKey::recover(block_header.public_key);
+    //         for tx in txs {
+    //             aggre_string_txs += &serde_json::to_string(&tx).unwrap();
+    //         }
+    //         //verify failed, malicious actions exist
+    //         if public_key.verify(ctx.bytes(aggre_string_txs.as_bytes()), &signature.unwrap()).is_err() {
+    //             result.add(InvalidReason::InvalidSignature);
+    //         }
+    //     }
+
+    //     Ok(result)
+    // }
+
+    async fn aggre_verify(&self, chain: &impl LightNodeInterface) -> Result<VerifyResult>{
         let mut result = VerifyResult::default();
-        let mut signature: Option<Signature>;
-        let mut block_header: BlockHeader;
-        let ctx = signing_context(b"");
-        for (id, txs) in self.res_txs.0.iter(){
-            signature = self.res_sigs.0.get(id).unwrap().to_owned();
-            block_header = chain.lightnode_read_block_header(id.to_owned()).await?;
-            if signature.eq(&Option::None){
-                //this means no satisfying txs in block(id)
-                //and the Vec stores boundary conditions 
-                continue;
-            }
-            let mut aggre_string_txs: String = String::from("");
-            let public_key = PublicKey::recover(block_header.public_key);
-            for tx in txs {
-                aggre_string_txs += &serde_json::to_string(&tx).unwrap();
-            }
-            //verify failed, malicious actions exist
-            if public_key.verify(ctx.bytes(aggre_string_txs.as_bytes()), &signature.unwrap()).is_err() {
-                result.add(InvalidReason::InvalidSignature);
+        
+
+        let mut sign_ctx: Vec<String> = Vec::new(); 
+        let mut aggre_string_txs: String = String::from("");
+        let mut public_keys: Vec<PublicKey> = Vec::new();
+        let mut signature:Option<Signature>;
+        let mut block_indexs:Vec<IdType> = Vec::from_iter(self.res_sigs.0.iter().map(|(x,_y)|x.to_owned()));
+        block_indexs.sort();
+        for index in block_indexs.iter(){
+            signature = self.res_sigs.0.get(index).unwrap().to_owned();
+            if signature.ne(&None) {
+                for tx in self.res_txs.0.get(index).unwrap().iter() {
+                    aggre_string_txs += &serde_json::to_string(tx).unwrap();
+                }
+                sign_ctx.push(aggre_string_txs.clone());
+                public_keys.push(
+                    PublicKey::recover(
+                        chain.lightnode_read_block_header(*index)
+                        .await
+                        .unwrap()
+                        .public_key
+                    )
+                );
+                aggre_string_txs.clear();
+            } else {
+                // boundary txs add to signature
+                for tx in self.res_txs.0.get(index).unwrap().iter() {
+                    aggre_string_txs += &(String::from(tx.block_id.to_string())
+                    + &String::from(tx.key.clone())
+                    + &String::from(tx.value.to_string()));
+                    sign_ctx.push(aggre_string_txs.clone());
+                    public_keys.push(
+                        PublicKey::recover(
+                            chain.lightnode_read_block_header(*index)
+                            .await
+                            .unwrap()
+                            .public_key
+                        )
+                    );
+                    aggre_string_txs.clear();
+                }
             }
         }
-
+        let ctx = signing_context(b"");
+        let transcripts = sign_ctx.iter().map(|m| ctx.bytes(m.as_bytes()));
+        if self.aggre_sign.as_ref().unwrap().verify(transcripts, &sign_ctx[..], &public_keys[..], false).is_err() {
+            result.add(InvalidReason::InvalidSignature);
+        }
         Ok(result)
     }
 }
@@ -95,15 +152,20 @@ pub fn historical_query(q_param: &QueryParam, chain: &impl ReadInterface)
  -> Result<OverallResult>{
     info!("process query {:?}", q_param);
 
-    let param = chain.get_parameter()?;
+    let mut param = chain.get_parameter()?;
+    param.intra_index = q_param.intra_index;
+    param.inter_index = q_param.inter_index;
+    
     let cpu_timer = howlong::ProcessCPUTimer::new();
     let timer = howlong::HighResolutionTimer::new();
     let mut res_txs = ResultTxs::new();
     let mut res_sigs = ResultSigs::new();
+    let mut aggre_sign: Option<AggSignature> = None;
 
     let mut result = OverallResult {
         res_txs: res_txs.clone(),
         res_sigs: res_sigs.clone(),
+        aggre_sign: aggre_sign.clone(),
         query_param: q_param.clone(),
         query_time_ms: 0,
         use_inter_index: param.inter_index,
@@ -190,6 +252,51 @@ pub fn historical_query(q_param: &QueryParam, chain: &impl ReadInterface)
 
     result.res_txs = res_txs.clone();
     result.res_sigs = res_sigs.clone();
+
+    let mut sign_ctx: Vec<String> = Vec::new(); 
+    let mut aggre_string_txs: String = String::from("");
+    let mut signatures: Vec<Signature> = Vec::new();
+    let mut public_keys: Vec<PublicKey> = Vec::new();
+    let mut signature:Option<Signature>;
+    let mut block_indexs:Vec<IdType> = Vec::from_iter(res_sigs.0.iter().map(|(x,_y)|x.to_owned()));
+    block_indexs.sort();
+    for index in block_indexs.iter(){
+        signature = res_sigs.0.get(index).unwrap().to_owned();
+        if signature.ne(&None) {
+            for tx in res_txs.0.get(index).unwrap().iter() {
+                aggre_string_txs += &serde_json::to_string(tx).unwrap();
+            }
+            sign_ctx.push(aggre_string_txs.clone());
+            signatures.push(signature.unwrap().clone());
+            public_keys.push(
+                PublicKey::recover(
+                    chain.read_block_header(*index)
+                    .unwrap()
+                    .public_key
+                )
+            );
+            aggre_string_txs.clear();
+        } else {
+            // boundary txs add to signature
+            for tx in res_txs.0.get(index).unwrap().iter() {
+                aggre_string_txs +=  &(String::from(tx.block_id.to_string())
+                + &String::from(tx.key.clone())
+                + &String::from(tx.value.to_string()));
+                sign_ctx.push(aggre_string_txs.clone());
+                signatures.push(tx.signature.clone());
+                public_keys.push(
+                    PublicKey::recover(
+                        chain.read_block_header(*index)
+                        .unwrap()
+                        .public_key
+                    )
+                );
+                aggre_string_txs.clear();
+            }
+        }
+    } 
+    aggre_sign = Some(AggSignature::sign_aggregate(&sign_ctx[..], &signatures[..], &public_keys[..]));
+    result.aggre_sign = aggre_sign.clone();
     result.query_time_ms = timer.elapsed().as_millis() as u64;
     info!("used time: {:?}", cpu_timer.elapsed());
     Ok(result)
@@ -218,7 +325,8 @@ fn query_chain_inter_index(
     end_id = end_id.min(param.start_block_id + param.block_count - 1);
     info!("start_id {}, end_id {}",start_id, end_id);
     // eliminate err_bounds
-    for index in start_id..end_id + 1 {
+    let mut index = end_id;
+    while index >= start_id{
         let block_header = chain.read_block_header(index)?;
         let block_data = chain.read_block_data(index)?;
         if block_header.time_stamp >= left_timestamp
@@ -226,7 +334,9 @@ fn query_chain_inter_index(
             block_headers.push(block_header.to_owned());
             block_datas.push(block_data.to_owned());
         }
+        index -= 1;
     }
+
     
     Ok(())
 }

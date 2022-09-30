@@ -117,4 +117,39 @@ fn main(){
         println!("verify passed!");
     }
 
+    //无任何优化操作（批量、聚合）
+    //返回结果为 查询相关交易和签名，边界交易和签名， VO为边界交易和所有签名， 验证时对所有签名一一进行验证
+    let messages: [&[u8]; 7] = [
+        b"Watch closely everyone, I'm going to show you how to kill a god.",
+        b"I'm not a cryptographer I just encrypt a lot.",
+        b"Still not a cryptographer.",
+        b"This is a test of the tsunami alert system. This is only a test.",
+        b"Fuck dumbin' it down, spit ice, skip jewellery: Molotov cocktails on me like accessories.",
+        b"Hey, I never cared about your bucks, so if I run up with a mask on, probably got a gas can too.",
+        b"And I'm not here to fill 'er up. Nope, we came to riot, here to incite, we don't want any of your stuff.", ];
+    //签名部分，对所有交易进行签名，compresse_ristretto为存放在区块头的公钥部分
+    let ctx = signing_context(b"");
+    let mut keypairs:Vec<Keypair> =Vec::new();
+    let mut signatures: Vec<Signature> = Vec::new();
+    let mut compressed_ristretto: Vec<CompressedRistretto> = Vec::new();
+    for i in 0..messages.len() {
+        let keypair: Keypair = Keypair::generate_with(OsRng);
+        let keypair1 =keypair.clone();
+        let compressed_ristretto1=keypair.public.as_compressed();
+        let signature = keypair.sign(ctx.bytes(messages[i]));
+        keypairs.push(keypair1);
+        signatures.push(signature);
+        compressed_ristretto.push(*compressed_ristretto1);
+    //    if keypair.public.verify(ctx.bytes(messages[i]), &signature).is_ok(){
+    //     println!("verify passed!");
+    //    }
+    }
+
+    //验证部分，使用区块头存储数据还原区块i的公钥，用区块i的公钥验证区块i内相关交易
+    let public_keys: Vec<PublicKey> = compressed_ristretto.iter().map(|cr| PublicKey::recover(*cr)).collect();
+    for i in 0..public_keys.len(){
+        if public_keys[i].verify(ctx.bytes(messages[i]), &signatures[i]).is_ok(){
+            println!("No optimization verify passed!");
+        }
+    }
 }

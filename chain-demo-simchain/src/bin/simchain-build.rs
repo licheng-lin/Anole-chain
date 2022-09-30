@@ -29,8 +29,8 @@ struct Opts {
     intra_index: bool,
 
     //error_bounds
-    #[structopt(long, default_value = "5")]
-    error_bounds: u8,
+    #[structopt(long, default_value = "5.0")]
+    error_bounds: FloatType,
 }
 
 fn build_chian(data_path: &Path, out_db_path: &Path, param: &mut Parameter) -> Result<()> {
@@ -60,7 +60,9 @@ fn build_chian(data_path: &Path, out_db_path: &Path, param: &mut Parameter) -> R
     param.block_count = block_count;
     param.start_block_id = start_block_id;
     chain.set_parameter(param.clone())?;
+    let timer = howlong::HighResolutionTimer::new();
     build_inter_index(block_headers, &mut chain)?;
+    info!("build inter_index time {:#?}", timer.elapsed());
     Ok(())
 }
 
@@ -76,6 +78,7 @@ fn main() -> Result<()> {
         intra_index: opts.intra_index,
         start_block_id: 0,
         block_count: 0,
+        inter_index_timestamps: Vec::new(),
     };
 
     build_chian(&opts.input_data_path, &opts.db_path, &mut param)?;

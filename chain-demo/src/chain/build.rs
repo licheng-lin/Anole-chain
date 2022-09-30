@@ -20,9 +20,7 @@ pub fn build_block<'a>(
     raw_txs: impl Iterator<Item = &'a RawTransaction>,
     key_pair: & Keypair,
     chain: &mut (impl ReadInterface + WriteInterface),
-) -> Result<BlockHeader> {
-    info!("Build block {}", block_id);
-    
+) -> Result<BlockHeader> {    
     // let param = chain.get_parameter()?;
     let txs: Vec<Transaction> = raw_txs.map(|rtx: &RawTransaction| Transaction::create_with_sk(rtx, &key_pair)).collect();
     let mut _time_stamp: TsType = Default::default();
@@ -93,12 +91,12 @@ pub fn build_inter_index(
     let mut inter_indexs: BTreeMap<TsType, InterIndex> = BTreeMap::new();
     let timestamps: Vec<TsType> = Vec::from_iter(block_headers.iter().map(|header| header.time_stamp.to_owned()));
     let heights: Vec<IdType> = Vec::from_iter(block_headers.iter().map(|header| header.block_id.to_owned()));
-    let param = chain.get_parameter().unwrap();
+    let mut param = chain.get_parameter().unwrap();
     let err_bounds = param.error_bounds as FloatType;
     let mut pre_timestamp = timestamps.first().unwrap().to_owned();
     // init inter_index
     inter_indexs.entry(pre_timestamp)
-        .or_insert(InterIndex { start_timestamp: pre_timestamp, regression_a: 1.0, regression_b: 1.0 });
+        .or_insert(InterIndex { start_timestamp: pre_timestamp.clone(), regression_a: 1.0, regression_b: 1.0 });
     
     for block_header in block_headers.iter(){
         let mut inter_index = inter_indexs.get(&pre_timestamp).unwrap().to_owned();
@@ -118,10 +116,9 @@ pub fn build_inter_index(
                 continue;
             }else {
                 // start new piecewise linear function
-                pre_timestamp = block_header.time_stamp;
+                pre_timestamp = block_header.time_stamp.clone();
                 inter_indexs.entry(pre_timestamp)
-                    .or_insert(InterIndex { start_timestamp: pre_timestamp, regression_a: 1.0, regression_b: 1.0 });
-                
+                    .or_insert(InterIndex { start_timestamp: pre_timestamp.clone(), regression_a: 1.0, regression_b: 1.0 });
             }
 
         }   
@@ -130,6 +127,8 @@ pub fn build_inter_index(
     //write inter_indexs ---
     for inter_index in inter_indexs.values() {
         chain.write_inter_index(inter_index.to_owned())?;
+        param.inter_index_timestamps.push(inter_index.start_timestamp);
     }
+    chain.set_parameter(param.clone())?;
     Ok(())
 }

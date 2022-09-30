@@ -13,7 +13,7 @@ const ASSERT_MESSAGE: &'static str = "The number of messages/transcripts, signat
 pub type Message = String;
 
 #[allow(non_snake_case)]
-#[derive(Debug)]
+#[derive(Debug, Default, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct AggSignature {
     bs: Scalar,
     Rs: Vec<CompressedRistretto>,
