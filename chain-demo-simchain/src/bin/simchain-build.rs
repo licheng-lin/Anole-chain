@@ -29,8 +29,8 @@ struct Opts {
     intra_index: bool,
 
     //error_bounds
-    #[structopt(long, default_value = "5")]
-    error_bounds: u8,
+    #[structopt(long, default_value = "5.0")]
+    error_bounds: FloatType,
 }
 
 fn build_chian(data_path: &Path, out_db_path: &Path, param: &mut Parameter) -> Result<()> {
