@@ -14,7 +14,11 @@
 ---compile code
 cargo test
 cargo build --release
----
+---txyun
+host:118.195.131.243
+username:root
+password:perfectbcts
+resource_directory:/tmp
 ```
 
 ## SimChain
