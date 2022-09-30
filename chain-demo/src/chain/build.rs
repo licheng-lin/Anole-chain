@@ -96,7 +96,7 @@ pub fn build_inter_index(
     let mut pre_timestamp = timestamps.first().unwrap().to_owned();
     // init inter_index
     inter_indexs.entry(pre_timestamp)
-        .or_insert(InterIndex { start_timestamp: pre_timestamp, regression_a: 1.0, regression_b: 1.0 });
+        .or_insert(InterIndex { start_timestamp: pre_timestamp.clone(), regression_a: 1.0, regression_b: 1.0 });
     
     for block_header in block_headers.iter(){
         let mut inter_index = inter_indexs.get(&pre_timestamp).unwrap().to_owned();
@@ -116,10 +116,9 @@ pub fn build_inter_index(
                 continue;
             }else {
                 // start new piecewise linear function
-                pre_timestamp = block_header.time_stamp;
+                pre_timestamp = block_header.time_stamp.clone();
                 inter_indexs.entry(pre_timestamp)
-                    .or_insert(InterIndex { start_timestamp: pre_timestamp, regression_a: 1.0, regression_b: 1.0 });
-                
+                    .or_insert(InterIndex { start_timestamp: pre_timestamp.clone(), regression_a: 1.0, regression_b: 1.0 });
             }
 
         }   
