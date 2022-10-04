@@ -28,6 +28,7 @@ pub struct OverallResult{
     pub query_time_ms: u64,
     pub use_inter_index: bool,
     pub use_intra_index: bool,
+    pub vo_size:usize,
 }
 
 impl OverallResult {
@@ -170,6 +171,7 @@ pub fn historical_query(q_param: &QueryParam, chain: &impl ReadInterface)
         query_time_ms: 0,
         use_inter_index: param.inter_index,
         use_intra_index: param.intra_index,
+        vo_size:0
     };
     let mut block_header: Vec<BlockHeader> = Vec::new();
     let mut block_data: Vec<BlockData> = Vec::new();
@@ -297,8 +299,11 @@ pub fn historical_query(q_param: &QueryParam, chain: &impl ReadInterface)
     } 
     aggre_sign = Some(AggSignature::sign_aggregate(&sign_ctx[..], &signatures[..], &public_keys[..]));
     result.aggre_sign = aggre_sign.clone();
+    let vo_size=32+aggre_sign.unwrap().Rs.len()*32;
     result.query_time_ms = timer.elapsed().as_millis() as u64;
+    result.vo_size=vo_size;
     info!("used time: {:?}", cpu_timer.elapsed());
+    info!("vo_size: {:?}", vo_size);
     Ok(result)
 }
 
