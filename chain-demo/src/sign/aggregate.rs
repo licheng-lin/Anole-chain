@@ -1,7 +1,7 @@
 use curve25519_dalek::ristretto::{CompressedRistretto};
 use curve25519_dalek::scalar::Scalar;
 use crate::digest::*;
-use crate::batch::{HasR,NotAnRng};
+use crate::batch::{HasR,NotAnRng,verify_batch_equation};
 use crate::boscoster::{verify_batch_equation_Bos};
 
 use super::*;
@@ -56,7 +56,7 @@ impl AggSignature{
 
         let hrams = prepare_batch(transcripts, self.Rs.as_slice(), public_keys);
         let zs = calculate_coefficent(messages, self.Rs.as_slice(), public_keys);
-        verify_batch_equation_Bos(
+        verify_batch_equation(
             self.bs,
             zs,
             hrams,

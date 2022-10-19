@@ -37,7 +37,6 @@ fn build_chian(data_path: &Path, out_db_path: &Path, param: &mut Parameter) -> R
     info!("build chain using data from {:?}", data_path);
     info!("output db path: {:?}",out_db_path);
     info!("param: {:?}",param);
-
     let raw_txs = load_raw_tx_from_file(data_path)?;
     let mut chain = SimChain::create(out_db_path, param.clone())?;
     
@@ -80,8 +79,8 @@ fn main() -> Result<()> {
         block_count: 0,
         inter_index_timestamps: Vec::new(),
     };
-
+    let timer_total = howlong::HighResolutionTimer::new();
     build_chian(&opts.input_data_path, &opts.db_path, &mut param)?;
-
+    info!("build total time {:#?}", timer_total.elapsed());
     Ok(())
 }

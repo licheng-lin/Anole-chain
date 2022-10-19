@@ -307,7 +307,7 @@ where
 
 /// Last phase of batch verification that checks the verification equation
 #[allow(non_snake_case)]
-fn verify_batch_equation(
+pub fn verify_batch_equation(
     bs: Scalar,
     zs: Vec<Scalar>,
     mut hrams: Vec<Scalar>,
