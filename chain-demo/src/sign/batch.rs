@@ -307,7 +307,7 @@ where
 
 /// Last phase of batch verification that checks the verification equation
 #[allow(non_snake_case)]
-fn verify_batch_equation(
+pub fn verify_batch_equation(
     bs: Scalar,
     zs: Vec<Scalar>,
     mut hrams: Vec<Scalar>,
@@ -363,18 +363,18 @@ fn verify_batch_equation(
 
 // 测试用 最基础的相加
 #[allow(non_snake_case)]
-fn verify_batch_equation_test(
+pub fn verify_batch_equation_test(
     bs: Scalar,
     zs: Vec<Scalar>,
     mut hrams: Vec<Scalar>,
-    signatures: &[Signature],
+    signatures: &[impl HasR],
     public_keys: &[PublicKey],
     deduplicate_public_keys: bool,
 ) -> SignatureResult<()>
 {
 
     // let B = once(Some(constants::RISTRETTO_BASEPOINT_POINT));
-    let R =signatures.iter().map(|sig| sig.R.decompress().unwrap());
+    let R =signatures.iter().map(|sig| sig.get_R().decompress().unwrap());
     let mut ppks = Vec::new();
     let As = if ! deduplicate_public_keys {
         // Multiply each H(R || A || M) by the random value

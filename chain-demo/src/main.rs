@@ -19,7 +19,35 @@ fn main(){
 
     //签名过程，按照消息不同修改message,signatures为签名结果{R,s},
     let ctx = signing_context(b"");
-    let messages: [&[u8]; 7] = [
+    let messages: [&[u8]; 35] = [
+        b"Watch closely everyone, I'm going to show you how to kill a god.",
+        b"I'm not a cryptographer I just encrypt a lot.",
+        b"Still not a cryptographer.",
+        b"This is a test of the tsunami alert system. This is only a test.",
+        b"Fuck dumbin' it down, spit ice, skip jewellery: Molotov cocktails on me like accessories.",
+        b"Hey, I never cared about your bucks, so if I run up with a mask on, probably got a gas can too.",
+        b"And I'm not here to fill 'er up. Nope, we came to riot, here to incite, we don't want any of your stuff.",
+        b"Watch closely everyone, I'm going to show you how to kill a god.",
+        b"I'm not a cryptographer I just encrypt a lot.",
+        b"Still not a cryptographer.",
+        b"This is a test of the tsunami alert system. This is only a test.",
+        b"Fuck dumbin' it down, spit ice, skip jewellery: Molotov cocktails on me like accessories.",
+        b"Hey, I never cared about your bucks, so if I run up with a mask on, probably got a gas can too.",
+        b"And I'm not here to fill 'er up. Nope, we came to riot, here to incite, we don't want any of your stuff.",
+        b"Watch closely everyone, I'm going to show you how to kill a god.",
+        b"I'm not a cryptographer I just encrypt a lot.",
+        b"Still not a cryptographer.",
+        b"This is a test of the tsunami alert system. This is only a test.",
+        b"Fuck dumbin' it down, spit ice, skip jewellery: Molotov cocktails on me like accessories.",
+        b"Hey, I never cared about your bucks, so if I run up with a mask on, probably got a gas can too.",
+        b"And I'm not here to fill 'er up. Nope, we came to riot, here to incite, we don't want any of your stuff.",
+        b"Watch closely everyone, I'm going to show you how to kill a god.",
+        b"I'm not a cryptographer I just encrypt a lot.",
+        b"Still not a cryptographer.",
+        b"This is a test of the tsunami alert system. This is only a test.",
+        b"Fuck dumbin' it down, spit ice, skip jewellery: Molotov cocktails on me like accessories.",
+        b"Hey, I never cared about your bucks, so if I run up with a mask on, probably got a gas can too.",
+        b"And I'm not here to fill 'er up. Nope, we came to riot, here to incite, we don't want any of your stuff.",
         b"Watch closely everyone, I'm going to show you how to kill a god.",
         b"I'm not a cryptographer I just encrypt a lot.",
         b"Still not a cryptographer.",
@@ -37,9 +65,9 @@ fn main(){
        let keypair1 = keypair.clone();
        let compressed_ristretto1=keypair1.public.as_compressed();
        let signature = keypair1.sign(ctx.bytes(messages[i]));
-       if keypair.public.verify(ctx.bytes(messages[i]), &signature).is_ok(){
-        println!("verify passed!");
-       }
+    //    if keypair.public.verify(ctx.bytes(messages[i]), &signature).is_ok(){
+    //     println!("verify passed!");
+    //    }
         signatures.push(signature);
         // keypairs.push(keypair1);
         compressed_ristretto.push(*compressed_ristretto1);
@@ -47,7 +75,7 @@ fn main(){
 
     //根据compressed_ristretto还原整个公钥
     let public_keys: Vec<PublicKey> = compressed_ristretto.iter().map(|cr| PublicKey::recover(*cr)).collect();
-    println!("{:?}\n",public_keys);
+    //println!("{:?}\n",public_keys);
     // if PublicKey::recover(*keypair.public.as_compressed()).eq(&keypair.public){
     //     println!("recover successed");
     //     println!("{:?}\n",PublicKey::recover(*keypair.public.as_compressed()));
@@ -56,18 +84,20 @@ fn main(){
     //批量验签
     // let public_keys: Vec<PublicKey> = keypairs.iter().map(|key| key.public).collect();
     let transcripts = messages.iter().map(|m| ctx.bytes(m));
+    let timer1 = howlong::HighResolutionTimer::new();
     if verify_batch_bos(transcripts, &signatures[..], &public_keys[..], false).is_ok(){
-        println!("bos_batch varify passed!");
+        println!("bos_batch varify passed! time used: {:#?}", timer1.elapsed());
     }
     let transcripts = messages.iter().map(|m| ctx.bytes(m));
+    let timer2 = howlong::HighResolutionTimer::new();
     if verify_batch(transcripts, &signatures[..], &public_keys[..], false).is_ok(){
-        println!("batch varify passed!");
+        println!("batch varify passed! time used: {:#?}", timer2.elapsed());
     }
 
     //聚合签名，全节点调用sign_aggregate将多个签名合并为{s,r,rsum}形式 客户端使用得到的{s,r,rsum}及区块头中的公钥调用verify_aggregate进行验证
     let transcripts = messages.iter().map(|m| ctx.bytes(m));
     let aggre_sign=sign_aggregate(&signatures[..]);
-    println!("aggregate_sign: {:?}",aggre_sign);
+    //println!("aggregate_sign: {:?}",aggre_sign);
     if keypair.public.verify_aggregate(transcripts,aggre_sign.bs, &aggre_sign.r[..], aggre_sign.rsum).is_ok(){
         println!("aggregate_varify passed!");
     }
@@ -78,6 +108,34 @@ fn main(){
     //   验证时调用aggsig.verify进行验证
     //   此处messages[i]为一个区块聚合后的信息
     let messages = [
+        "Watch closely everyone, I'm going to show you how to kill a god.",
+        "I'm not a cryptographer I just encrypt a lot.",
+        "Still not a cryptographer.",
+        "This is a test of the tsunami alert system. This is only a test.",
+        "Fuck dumbin' it down, spit ice, skip jewellery: Molotov cocktails on me like accessories.",
+        "Hey, I never cared about your bucks, so if I run up with a mask on, probably got a gas can too.",
+        "And I'm not here to fill 'er up. Nope, we came to riot, here to incite, we don't want any of your stuff.",
+        "Watch closely everyone, I'm going to show you how to kill a god.",
+        "I'm not a cryptographer I just encrypt a lot.",
+        "Still not a cryptographer.",
+        "This is a test of the tsunami alert system. This is only a test.",
+        "Fuck dumbin' it down, spit ice, skip jewellery: Molotov cocktails on me like accessories.",
+        "Hey, I never cared about your bucks, so if I run up with a mask on, probably got a gas can too.",
+        "And I'm not here to fill 'er up. Nope, we came to riot, here to incite, we don't want any of your stuff.",
+        "Watch closely everyone, I'm going to show you how to kill a god.",
+        "I'm not a cryptographer I just encrypt a lot.",
+        "Still not a cryptographer.",
+        "This is a test of the tsunami alert system. This is only a test.",
+        "Fuck dumbin' it down, spit ice, skip jewellery: Molotov cocktails on me like accessories.",
+        "Hey, I never cared about your bucks, so if I run up with a mask on, probably got a gas can too.",
+        "And I'm not here to fill 'er up. Nope, we came to riot, here to incite, we don't want any of your stuff.",
+        "Watch closely everyone, I'm going to show you how to kill a god.",
+        "I'm not a cryptographer I just encrypt a lot.",
+        "Still not a cryptographer.",
+        "This is a test of the tsunami alert system. This is only a test.",
+        "Fuck dumbin' it down, spit ice, skip jewellery: Molotov cocktails on me like accessories.",
+        "Hey, I never cared about your bucks, so if I run up with a mask on, probably got a gas can too.",
+        "And I'm not here to fill 'er up. Nope, we came to riot, here to incite, we don't want any of your stuff.",
         "Watch closely everyone, I'm going to show you how to kill a god.",
         "I'm not a cryptographer I just encrypt a lot.",
         "Still not a cryptographer.",
@@ -109,17 +167,45 @@ fn main(){
     let public_keys: Vec<PublicKey> = compressed_ristretto.iter().map(|cr| PublicKey::recover(*cr)).collect();
     // aggsig为聚合签名{s,r1,r2,..,rn}
     let aggsig = AggSignature::sign_aggregate(&Messages[..], &signatures[..], &public_keys[..]);
-    println!("{:?}",aggsig);
-
+   // println!("{:?}",aggsig);
     //聚合验证，通过即返回结果均无误
     let transcripts = messages.iter().map(|m| ctx.bytes(m.as_bytes()));
+    let timer4 = howlong::HighResolutionTimer::new();
     if aggsig.verify(transcripts, &Messages[..], &public_keys[..], false).is_ok(){
-        println!("verify passed!");
+        println!("aggsig varify passed! time used: {:#?}", timer4.elapsed());
     }
 
     //无任何优化操作（批量、聚合）
     //返回结果为 查询相关交易和签名，边界交易和签名， VO为边界交易和所有签名， 验证时对所有签名一一进行验证
-    let messages: [&[u8]; 7] = [
+    let messages: [&[u8]; 35] = [
+        b"Watch closely everyone, I'm going to show you how to kill a god.",
+        b"I'm not a cryptographer I just encrypt a lot.",
+        b"Still not a cryptographer.",
+        b"This is a test of the tsunami alert system. This is only a test.",
+        b"Fuck dumbin' it down, spit ice, skip jewellery: Molotov cocktails on me like accessories.",
+        b"Hey, I never cared about your bucks, so if I run up with a mask on, probably got a gas can too.",
+        b"And I'm not here to fill 'er up. Nope, we came to riot, here to incite, we don't want any of your stuff.",
+        b"Watch closely everyone, I'm going to show you how to kill a god.",
+        b"I'm not a cryptographer I just encrypt a lot.",
+        b"Still not a cryptographer.",
+        b"This is a test of the tsunami alert system. This is only a test.",
+        b"Fuck dumbin' it down, spit ice, skip jewellery: Molotov cocktails on me like accessories.",
+        b"Hey, I never cared about your bucks, so if I run up with a mask on, probably got a gas can too.",
+        b"And I'm not here to fill 'er up. Nope, we came to riot, here to incite, we don't want any of your stuff.",
+        b"Watch closely everyone, I'm going to show you how to kill a god.",
+        b"I'm not a cryptographer I just encrypt a lot.",
+        b"Still not a cryptographer.",
+        b"This is a test of the tsunami alert system. This is only a test.",
+        b"Fuck dumbin' it down, spit ice, skip jewellery: Molotov cocktails on me like accessories.",
+        b"Hey, I never cared about your bucks, so if I run up with a mask on, probably got a gas can too.",
+        b"And I'm not here to fill 'er up. Nope, we came to riot, here to incite, we don't want any of your stuff.",
+        b"Watch closely everyone, I'm going to show you how to kill a god.",
+        b"I'm not a cryptographer I just encrypt a lot.",
+        b"Still not a cryptographer.",
+        b"This is a test of the tsunami alert system. This is only a test.",
+        b"Fuck dumbin' it down, spit ice, skip jewellery: Molotov cocktails on me like accessories.",
+        b"Hey, I never cared about your bucks, so if I run up with a mask on, probably got a gas can too.",
+        b"And I'm not here to fill 'er up. Nope, we came to riot, here to incite, we don't want any of your stuff.",
         b"Watch closely everyone, I'm going to show you how to kill a god.",
         b"I'm not a cryptographer I just encrypt a lot.",
         b"Still not a cryptographer.",
@@ -147,9 +233,11 @@ fn main(){
 
     //验证部分，使用区块头存储数据还原区块i的公钥，用区块i的公钥验证区块i内相关交易
     let public_keys: Vec<PublicKey> = compressed_ristretto.iter().map(|cr| PublicKey::recover(*cr)).collect();
+    let timer3 = howlong::HighResolutionTimer::new();
     for i in 0..public_keys.len(){
         if public_keys[i].verify(ctx.bytes(messages[i]), &signatures[i]).is_ok(){
             println!("No optimization verify passed!");
         }
     }
+    println!("single varify passed! time used: {:#?}", timer3.elapsed());
 }

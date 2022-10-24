@@ -101,7 +101,6 @@ pub fn verify_batch_equation_Bos(
         hrams.truncate(ppks.len());
         ppks.as_slice()
     }.iter().map(|pk| Some(pk.as_point().clone()));
-    
     // Compute (-∑ z[i]s[i] (mod l)) B + ∑ z[i]R[i] + ∑ (z[i]H(R||A||M)[i] (mod l)) A[i] = 0
     let left=(&bs * &constants::RISTRETTO_BASEPOINT_TABLE).compress();
     let mut parray:Vec<PArray> = Vec::new();
@@ -111,6 +110,10 @@ pub fn verify_batch_equation_Bos(
     for (A,hram) in As.zip(hrams.iter()){
         parray.push(PArray::new(*hram,A.unwrap()));
     }
+    // let mut right:RistrettoPoint=parray[0].a * &parray[0].P; 
+    // for i in 1..parray.len(){
+    //     right= right + parray[i].a * &parray[i].P;
+    // }
     let right = boscoster(parray);
     // We need not return SignatureError::PointDecompressionError because
     // the decompression failures occur for R represent invalid signatures.
@@ -123,9 +126,13 @@ pub fn verify_batch_equation_Bos(
 fn boscoster(mut P: Vec<PArray>)->CompressedRistretto{
     P.sort_by(|a,b|a.cmp(b).reverse());
     while !P[1].a.eq(&Scalar::zero()){
+        while P[0].cmp(&P[1]) != Ordering::Less{
         P[0].a=P[0].a - P[1].a;
         P[1].P=P[0].P + P[1].P;
+        }
+        let timer1 = howlong::HighResolutionTimer::new();
         P.sort_by(|a,b|a.cmp(b).reverse());
+        println!("sort used: {:#?}", timer1.elapsed());
     }
     return (P[0].a * &P[0].P).compress();
 }
