@@ -20,7 +20,7 @@ pub fn build_block<'a>(
     raw_txs: impl Iterator<Item = &'a RawTransaction>,
     key_pair: & Keypair,
     chain: &mut (impl ReadInterface + WriteInterface),
-) -> Result<BlockHeader> {    
+) -> Result<(BlockHeader, IdType)> {    
     // let param = chain.get_parameter()?;
     let txs: Vec<Transaction> = raw_txs.map(|rtx: &RawTransaction| Transaction::create_with_sk(rtx, &key_pair)).collect();
     let mut _time_stamp: TsType = Default::default();
@@ -34,6 +34,8 @@ pub fn build_block<'a>(
     let mut pre_key = txs[0].key.clone();
     let mut aggre_sign: Signature;
     let ctx = signing_context(b"");
+    // intra_index
+    let mut intra_index_size: IdType = 0;
 
     for tx in txs{
         chain.write_transaction(tx.clone())?;
@@ -62,7 +64,11 @@ pub fn build_block<'a>(
     let keys = intra_b_index.keys();
     let values = intra_b_index.values();
     intra_index= keys.into_iter().map(|x| x.to_owned()).zip(values.into_iter().map(|y| y.to_owned())).collect::<HashMap<_,_>>();
-    
+    for (key,_id) in intra_index.iter() {
+        // u64 eq 8 B
+        intra_index_size += (key.as_bytes().len() + 8) as u64;
+    }
+
     let block_header = BlockHeader{
         block_id,
         pre_hash,
@@ -80,13 +86,13 @@ pub fn build_block<'a>(
     chain.write_block_header(block_header.clone())?;
     chain.write_block_data(block_data.clone())?;
 
-    Ok(block_header)
+    Ok((block_header, intra_index_size))
 }
 
 pub fn build_inter_index(
     block_headers: Vec<BlockHeader>,
     chain: &mut (impl ReadInterface + WriteInterface)
-) -> Result<()>{
+) -> Result<IdType>{
     info!("build inter index");
     let mut inter_indexs: BTreeMap<TsType, InterIndex> = BTreeMap::new();
     let timestamps: Vec<TsType> = Vec::from_iter(block_headers.iter().map(|header| header.time_stamp.to_owned()));
@@ -132,11 +138,14 @@ pub fn build_inter_index(
         }   
     }
     
-    //write inter_indexs ---
+    let mut inter_index_size: IdType = 0;
+    //write inter_indexs && count inter_index_size
     for inter_index in inter_indexs.values() {
+        // each InterIndex contains 1 TsType & 2 FloatType Storage size eq 3 * 8 = 24 B
+        inter_index_size += 24;
         chain.write_inter_index(inter_index.to_owned())?;
         param.inter_index_timestamps.push(inter_index.start_timestamp);
     }
     chain.set_parameter(param.clone())?;
-    Ok(())
+    Ok(inter_index_size)
 }

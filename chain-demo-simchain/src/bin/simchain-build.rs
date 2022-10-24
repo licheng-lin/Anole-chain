@@ -44,7 +44,8 @@ fn build_chian(data_path: &Path, out_db_path: &Path, param: &mut Parameter) -> R
     let mut block_count: IdType = 0;
     let start_block_id: IdType =  raw_txs.keys().min().unwrap().to_owned();
     let mut block_headers: Vec<BlockHeader> = Vec::new();
-    
+    // index_size count number of bytes e.g., index_size = 10 means 10B
+    let mut index_size :IdType = 0;
 
     let key_pair: Keypair = Keypair::generate_with(OsRng);
     let mut pre_hash = Digest::default();
@@ -52,7 +53,10 @@ fn build_chian(data_path: &Path, out_db_path: &Path, param: &mut Parameter) -> R
         info!("build block {}", id);
         let mut sorted_txs = tx.clone();
         sorted_txs.sort_by_key(|tx| tx.key.clone());
-        let block_header = build_block(*id, pre_hash, sorted_txs.iter(), &key_pair, &mut chain)?;
+        let (block_header,intra_index_size) = build_block(*id, pre_hash, sorted_txs.iter(), &key_pair, &mut chain)?;
+        // intra_index size
+        index_size += intra_index_size;
+
         block_headers.push(block_header.clone());
         pre_hash = block_header.to_digest();
         block_count += 1;
@@ -61,8 +65,11 @@ fn build_chian(data_path: &Path, out_db_path: &Path, param: &mut Parameter) -> R
     param.start_block_id = start_block_id;
     chain.set_parameter(param.clone())?;
     let timer = howlong::HighResolutionTimer::new();
-    build_inter_index(block_headers, &mut chain)?;
+    let inter_index_size: IdType =  build_inter_index(block_headers, &mut chain)?;
     info!("build inter_index time {:#?}", timer.elapsed());
+    info!("intra_index size storage cost {:?} B eq {:?} KB eq {:?} MB", index_size, index_size/1024, index_size/1024/1024);
+    index_size += inter_index_size;
+    info!("total index storage cost {:?} B eq {:?} KB eq {:?} MB", index_size, index_size/1024, index_size/1024/1024);
     Ok(())
 }
 
