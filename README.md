@@ -7,6 +7,7 @@
     - [x] inter-index
     - [x] aggregate signature
     - [x] error_bounds bugs
+    - [ ] no aggregation
 
 ## Necessary Knowledge
 

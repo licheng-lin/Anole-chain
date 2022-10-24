@@ -105,8 +105,15 @@ pub fn build_inter_index(
         if is_within_boundary(inter_index.regression_a, inter_index.regression_b, point_x, point_y, err_bounds) {
             continue;
         }else {
-            let start_index = timestamps.binary_search(&pre_timestamp).unwrap();
-            let end_index = timestamps.binary_search(&block_header.time_stamp).unwrap();
+            // info!("timestamp {:?}", point_x.clone());
+            let start_index: usize = timestamps.binary_search(&pre_timestamp).unwrap();
+            let end_index_result = timestamps.binary_search(&block_header.time_stamp);
+            let end_index: usize =  match end_index_result {
+                Ok(_t) => _t,
+                Err(_e) => {
+                    panic!("problem encounted with binary search timestamp key {:?}",block_header.time_stamp)
+                },
+            };
             let (regression_a, regression_b) = linear_regression(&timestamps[start_index..end_index + 1], &heights[start_index..end_index + 1]);
             if is_within_boundary(regression_a, regression_b, point_x, point_y, err_bounds) {
                 inter_index.regression_a = regression_a;
@@ -117,6 +124,7 @@ pub fn build_inter_index(
             }else {
                 // start new piecewise linear function
                 pre_timestamp = block_header.time_stamp.clone();
+                // info!("pre_timestamp {:?}",pre_timestamp);
                 inter_indexs.entry(pre_timestamp)
                     .or_insert(InterIndex { start_timestamp: pre_timestamp.clone(), regression_a: 1.0, regression_b: 1.0 });
             }

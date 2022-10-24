@@ -73,6 +73,7 @@ pub struct VerifyResponse {
     pass: bool,
     fail_detail: VerifyResult,
     verify_time_in_ms: u64,
+    vo_size:usize,
 }
 
 async fn web_verify(mut body: web::Payload) -> actix_web::Result<impl Responder>{
@@ -87,6 +88,7 @@ async fn web_verify(mut body: web::Payload) -> actix_web::Result<impl Responder>
         pass: verify_result.is_ok(),
         fail_detail: verify_result,
         verify_time_in_ms: time.as_millis() as u64,
+        vo_size:query_res.vo_size
     };
     Ok(HttpResponse::Ok().json(response))
 }

@@ -15,8 +15,8 @@ pub type Message = String;
 #[allow(non_snake_case)]
 #[derive(Debug, Default, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct AggSignature {
-    bs: Scalar,
-    Rs: Vec<CompressedRistretto>,
+    pub bs: Scalar,
+    pub Rs: Vec<CompressedRistretto>,
 }
 
 impl AggSignature{
