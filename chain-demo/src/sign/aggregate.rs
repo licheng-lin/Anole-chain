@@ -1,8 +1,7 @@
 use curve25519_dalek::ristretto::{CompressedRistretto};
 use curve25519_dalek::scalar::Scalar;
 use crate::digest::*;
-use crate::batch::{HasR,NotAnRng,verify_batch_equation,verify_batch_equation_test};
-use crate::boscoster::{verify_batch_equation_Bos};
+use crate::batch::{HasR,NotAnRng,verify_batch_equation};
 
 use super::*;
 use crate::context::{SigningTranscript};

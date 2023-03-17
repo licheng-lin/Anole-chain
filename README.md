@@ -1,25 +1,9 @@
-- [ ] ToDoList 
-    - [X] complete simchain-server
-    - [X] format schnorr
-    - [x] complete signature use schnorr
-    - [x] query bug
-    - [x] query verify
-    - [x] inter-index
-    - [x] aggregate signature
-    - [x] error_bounds bugs
-    - [ ] no aggregation
-
 ## Necessary Knowledge
 
 ```
 ---compile code
 cargo test
 cargo build --release
----txyun
-host:118.195.131.243
-username:root
-password:perfectbcts
-resource_directory:/tmp
 ```
 
 ## Recompile & Run vChain+
@@ -129,7 +113,7 @@ curl -X GET http:127.0.0.1:8000/get/param
 API endpoint is:
 
 ```
-POST /verify
+POST /query
 ```
 
 Parameters are followed with this request in JSON format
@@ -189,8 +173,4 @@ The response is a JSON object like:
     "verify_time_in_ms": ...
 }
 ```
-
-
-
-聚合签名目前采用第一种方式：通过矿工将一个区块内相同地址交易的内容进行拼接形成一个聚合签名，同块内索引一起存储在区块数据`blk_data`中。
 
